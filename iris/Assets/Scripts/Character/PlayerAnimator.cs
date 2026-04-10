@@ -28,13 +28,19 @@ public class PlayerAnimator : MonoBehaviour
     void Start()
     {
         if (entity != null)
+        {
             entity.OnDeath += OnDeath;
+            entity.OnHurt  += OnHurt;
+        }
     }
 
     void OnDestroy()
     {
         if (entity != null)
+        {
             entity.OnDeath -= OnDeath;
+            entity.OnHurt  -= OnHurt;
+        }
     }
 
     void Update()
@@ -48,7 +54,10 @@ public class PlayerAnimator : MonoBehaviour
         // 回避（開始時に1回だけトリガー）
         bool isDodging = controller.IsDodging;
         if (isDodging && !wasDodging)
+        {
             anim.SetTrigger(DodgeHash);
+            AudioManager.Instance?.PlaySE(SFX.PlayerDodge);
+        }
         wasDodging = isDodging;
 
         // オートアタック（AutoAttackSystemから呼ばれる想定だが、ここでは簡易的にトリガー）
@@ -60,10 +69,17 @@ public class PlayerAnimator : MonoBehaviour
     public void TriggerAttack()
     {
         anim.SetTrigger(AttackHash);
+        AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
+    }
+
+    private void OnHurt()
+    {
+        AudioManager.Instance?.PlaySE(SFX.PlayerHurt);
     }
 
     private void OnDeath()
     {
         anim.SetBool(IsDeadHash, true);
+        AudioManager.Instance?.PlaySE(SFX.PlayerDeath);
     }
 }

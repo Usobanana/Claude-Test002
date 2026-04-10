@@ -19,6 +19,10 @@ public class ResultScreenUI : MonoBehaviour
     {
         SetupUI();
         returnButton?.onClick.AddListener(ReturnToBase);
+
+        // クエスト成功時にSEを再生
+        if (QuestManager.Instance != null && QuestManager.Instance.IsSuccess)
+            AudioManager.Instance?.PlaySE(SFX.QuestClear);
     }
 
     private void SetupUI()

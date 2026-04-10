@@ -48,9 +48,15 @@ public class BossController : MonoBehaviour, IDamageable
     private Transform    playerTransform;
     private NavMeshAgent agent;
 
-    // イベント
+    // ゲームイベント
     public event System.Action<BossPhase> OnPhaseChanged;
     public event System.Action            OnBossDeath;
+
+    // アニメーションイベント
+    public event System.Action OnAttackAnim;
+    public event System.Action OnHitReactAnim;
+    public event System.Action OnDeathAnim;
+    public event System.Action OnPhaseTransitionAnim;
 
     void Awake()
     {
@@ -91,8 +97,8 @@ public class BossController : MonoBehaviour, IDamageable
 
         if (agent.isOnNavMesh) agent.isStopped = true;
         Debug.Log("[Boss] Phase2 移行！");
+        OnPhaseTransitionAnim?.Invoke();
 
-        // TODO: フェーズ移行演出（アニメーション・エフェクト）
         yield return new WaitForSeconds(1.5f);
 
         ApplyPhaseSettings();
@@ -167,6 +173,7 @@ public class BossController : MonoBehaviour, IDamageable
         float power = CurrentPhase == BossPhase.Phase1 ? p1AttackPower : p2AttackPower;
         target.TakeDamage(power);
         Debug.Log($"[Boss] 通常攻撃 → {power} ダメージ (Phase{(int)CurrentPhase + 1})");
+        OnAttackAnim?.Invoke();
     }
 
     private IEnumerator ChargeAttack()
@@ -203,16 +210,23 @@ public class BossController : MonoBehaviour, IDamageable
         currentHp = Mathf.Max(0f, currentHp - mitigated);
         Debug.Log($"[Boss] {mitigated} ダメージ / HP: {currentHp:F0}/{maxHp} ({HpRatio * 100:F0}%)");
 
-        if (!IsAlive) OnDeath();
+        if (!IsAlive)
+        {
+            HandleDeath();
+        }
+        else
+        {
+            OnHitReactAnim?.Invoke();
+        }
     }
 
-    private void OnDeath()
+    private void HandleDeath()
     {
         Debug.Log("[Boss] 撃破！");
         agent.enabled = false;
+        OnDeathAnim?.Invoke();
         OnBossDeath?.Invoke();
-        // TODO: 死亡演出・クエストクリア通知
-        Destroy(gameObject, 2f);
+        Destroy(gameObject, 2.5f);
     }
 
     void OnDrawGizmosSelected()

@@ -7,6 +7,8 @@ using UnityEngine.AI;
 /// </summary>
 public static class EnemySetupTool
 {
+    private const string EnemyACPath = "Assets/Animations/Enemy_AC.controller";
+
     [MenuItem("Game/Spawn Normal Enemy")]
     public static void SpawnNormalEnemy()
     {
@@ -22,27 +24,37 @@ public static class EnemySetupTool
     private static void SpawnEnemy(string name, Vector3 position, bool isBoss)
     {
         var go = isBoss
-            ? GameObject.CreatePrimitive(PrimitiveType.Cube)   // ボスは立方体で区別
+            ? GameObject.CreatePrimitive(PrimitiveType.Cube)
             : GameObject.CreatePrimitive(PrimitiveType.Capsule);
 
         go.name = name;
         go.tag  = "Enemy";
         go.transform.position = position;
 
+        go.AddComponent<NavMeshAgent>();
+
         if (isBoss)
         {
             go.transform.localScale = new Vector3(1.5f, 2f, 1.5f);
-            go.AddComponent<NavMeshAgent>();
             go.AddComponent<BossController>();
         }
         else
         {
-            go.AddComponent<NavMeshAgent>();
             go.AddComponent<EnemyController>();
         }
 
+        // Animator + EnemyAnimator を追加し Enemy_AC をアサイン
+        var animator = go.AddComponent<Animator>();
+        var ac = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(EnemyACPath);
+        if (ac != null)
+            animator.runtimeAnimatorController = ac;
+        else
+            Debug.LogWarning($"[EnemySetupTool] Enemy_AC が見つかりません: {EnemyACPath}  →  Game/Setup Enemy Animator Controller を先に実行してください");
+
+        go.AddComponent<EnemyAnimator>();
+
         Undo.RegisterCreatedObjectUndo(go, $"Spawn {name}");
         Selection.activeGameObject = go;
-        Debug.Log($"[EnemySetupTool] {name} を配置しました");
+        Debug.Log($"[EnemySetupTool] {name} を配置しました（Animator + EnemyAnimator 付き）");
     }
 }

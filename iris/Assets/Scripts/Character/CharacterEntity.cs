@@ -20,6 +20,7 @@ public class CharacterEntity : MonoBehaviour
     // --- イベント ---
     public event Action<float, float> OnHpChanged;       // (current, max)
     public event Action<float, float> OnStaminaChanged;  // (current, max)
+    public event Action               OnHurt;            // ダメージを受けたが生存
     public event Action               OnDeath;
 
     public CharacterData Data => data;
@@ -51,7 +52,10 @@ public class CharacterEntity : MonoBehaviour
         if (!IsAlive) return;
         CurrentHp = Mathf.Max(0f, CurrentHp - damage);
         OnHpChanged?.Invoke(CurrentHp, data.baseStats.maxHp);
-        if (CurrentHp <= 0f) OnDeath?.Invoke();
+        if (CurrentHp <= 0f)
+            OnDeath?.Invoke();
+        else
+            OnHurt?.Invoke();
     }
 
     public void Heal(float amount)

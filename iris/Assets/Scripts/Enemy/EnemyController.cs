@@ -24,6 +24,11 @@ public class EnemyController : MonoBehaviour, IDamageable
     public ElementType Element   => element;
     public EnemyType   EnemyType => enemyType;
 
+    // アニメーションイベント
+    public event System.Action OnAttackAnim;
+    public event System.Action OnHitReactAnim;
+    public event System.Action OnDeathAnim;
+
     private float        currentHp;
     private float        attackTimer;
     private Transform    playerTransform;
@@ -84,7 +89,14 @@ public class EnemyController : MonoBehaviour, IDamageable
         currentHp = Mathf.Max(0f, currentHp - mitigated);
         Debug.Log($"[Enemy] {gameObject.name} が {mitigated} ダメージ受けた / HP: {currentHp}/{maxHp}");
 
-        if (!IsAlive) OnDeath();
+        if (!IsAlive)
+        {
+            HandleDeath();
+        }
+        else
+        {
+            OnHitReactAnim?.Invoke();
+        }
     }
 
     private void AttackPlayer()
@@ -93,14 +105,15 @@ public class EnemyController : MonoBehaviour, IDamageable
         if (playerEntity == null || !playerEntity.IsAlive) return;
         playerEntity.TakeDamage(attackPower);
         Debug.Log($"[Enemy] {gameObject.name} がプレイヤーに {attackPower} ダメージ");
+        OnAttackAnim?.Invoke();
     }
 
-    private void OnDeath()
+    private void HandleDeath()
     {
         Debug.Log($"[Enemy] {gameObject.name} 死亡");
         if (agent != null) agent.enabled = false;
-        // TODO: 死亡アニメーション・ドロップ処理
-        Destroy(gameObject, 1f);
+        OnDeathAnim?.Invoke();
+        Destroy(gameObject, 1.5f);
     }
 
     // HP の割合（HUDなどで使用）
