@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5f515cc6c323ea4ab969d720c6972be, type: 3}
+  m_Name: Quest_001_FireTrial
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 1
+  questName: "\u708E\u306E\u8A66\u7DF4"
+  description: "\u30D5\u30A3\u30FC\u30EB\u30C9\u306B\u6F5C\u3080\u708E\u306E\u30DC\u30B9\u3092\u8A0E\u4F10\u305B\u3088\u3002"
+  rewardExp: 500
+  rewardGold: 300
+  fieldSceneName: FieldScene

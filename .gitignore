@@ -1,0 +1,33 @@
+# Unity 自動生成フォルダ
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+
+# Unity Crash Logs
+sysinfo.txt
+*.stackdump
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 商用アセット（ライセンスによりリポジトリ不可・Asset Storeから再DL）
+iris/Assets/Synty/
+
+# Asset Storeキャッシュ
+*.unitypackage
