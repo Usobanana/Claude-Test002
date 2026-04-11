@@ -75,13 +75,14 @@ public static class PlayerAnimatorSetupTool
         T(sIdle, sRun,  t => { t.hasExitTime = false; t.duration = 0.1f; t.AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed"); });
         T(sRun,  sIdle, t => { t.hasExitTime = false; t.duration = 0.1f; t.AddCondition(AnimatorConditionMode.Less,    0.1f, "Speed"); });
 
-        // コンボ（AnyState → 各打撃、Attack trigger + ComboIndex 条件）
+        // コンボ
+        // AnyState → 各打撃（AUTO モードでは attackInterval ごとに Idle から直接遷移するため全段に AnyState 遷移が必要）
         AnyT(sm, sAttack1, t => { t.AddCondition(AnimatorConditionMode.If, 0, "Attack"); t.AddCondition(AnimatorConditionMode.Equals, 1, "ComboIndex"); t.duration = 0.05f; t.hasExitTime = false; t.canTransitionToSelf = false; });
-        T(sAttack1, sAttack2, t => { t.AddCondition(AnimatorConditionMode.If, 0, "Attack"); t.AddCondition(AnimatorConditionMode.Equals, 2, "ComboIndex"); t.duration = 0.05f; t.hasExitTime = false; });
-        T(sAttack1, sIdle,    t => { t.hasExitTime = true; t.exitTime = 0.9f; t.duration = 0.1f; });
-        T(sAttack2, sAttack3, t => { t.AddCondition(AnimatorConditionMode.If, 0, "Attack"); t.AddCondition(AnimatorConditionMode.Equals, 3, "ComboIndex"); t.duration = 0.05f; t.hasExitTime = false; });
-        T(sAttack2, sIdle,    t => { t.hasExitTime = true; t.exitTime = 0.9f; t.duration = 0.1f; });
-        T(sAttack3, sIdle,    t => { t.hasExitTime = true; t.exitTime = 0.9f; t.duration = 0.1f; });
+        AnyT(sm, sAttack2, t => { t.AddCondition(AnimatorConditionMode.If, 0, "Attack"); t.AddCondition(AnimatorConditionMode.Equals, 2, "ComboIndex"); t.duration = 0.05f; t.hasExitTime = false; t.canTransitionToSelf = false; });
+        AnyT(sm, sAttack3, t => { t.AddCondition(AnimatorConditionMode.If, 0, "Attack"); t.AddCondition(AnimatorConditionMode.Equals, 3, "ComboIndex"); t.duration = 0.05f; t.hasExitTime = false; t.canTransitionToSelf = false; });
+        T(sAttack1, sIdle, t => { t.hasExitTime = true; t.exitTime = 0.9f; t.duration = 0.1f; });
+        T(sAttack2, sIdle, t => { t.hasExitTime = true; t.exitTime = 0.9f; t.duration = 0.1f; });
+        T(sAttack3, sIdle, t => { t.hasExitTime = true; t.exitTime = 0.9f; t.duration = 0.1f; });
 
         // スキル
         foreach (var (state, trig) in new[] { (sSkill1,"Skill1"),(sSkill2,"Skill2"),(sSkill3,"Skill3") })
