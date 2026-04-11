@@ -11,6 +11,7 @@ public class InputHandler : MonoBehaviour
 
     // --- 入力値（毎フレーム更新）---
     public Vector2 MoveInput   { get; private set; }
+    public bool    AttackInput { get; private set; }  // 通常攻撃（押した瞬間）
     public bool    DodgeInput  { get; private set; }  // 回避（押した瞬間）
     public bool    Skill1Input { get; private set; }
     public bool    Skill2Input { get; private set; }
@@ -22,6 +23,7 @@ public class InputHandler : MonoBehaviour
 
     // Action references
     private InputAction moveAction;
+    private InputAction attackAction;
     private InputAction dodgeAction;
     private InputAction skill1Action;
     private InputAction skill2Action;
@@ -52,6 +54,7 @@ public class InputHandler : MonoBehaviour
         var map = playerInput.actions.FindActionMap("Player", throwIfNotFound: true);
 
         moveAction   = map.FindAction("Move",       throwIfNotFound: true);
+        attackAction = map.FindAction("Attack",     throwIfNotFound: true);
         dodgeAction  = map.FindAction("Dodge",      throwIfNotFound: true);
         skill1Action = map.FindAction("Skill1",     throwIfNotFound: true);
         skill2Action = map.FindAction("Skill2",     throwIfNotFound: true);
@@ -63,6 +66,7 @@ public class InputHandler : MonoBehaviour
     void Update()
     {
         MoveInput   = moveAction.ReadValue<Vector2>();
+        AttackInput = attackAction.WasPressedThisFrame();
         DodgeInput  = dodgeAction.WasPressedThisFrame();
         Skill1Input = skill1Action.WasPressedThisFrame();
         Skill2Input = skill2Action.WasPressedThisFrame();

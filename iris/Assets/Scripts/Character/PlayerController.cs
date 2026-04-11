@@ -129,4 +129,15 @@ public class PlayerController : MonoBehaviour
     // --- 公開プロパティ ---
 
     public bool IsDodging => isDodging;
+
+    /// <summary>指定ワールド座標の方向へ即時回転（AutoAttackSystem 用）</summary>
+    public void FaceToward(Vector3 worldPos)
+    {
+        Vector3 dir = worldPos - transform.position;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.001f) return;
+        dir.Normalize();
+        FacingDirection = dir;
+        transform.rotation = Quaternion.LookRotation(dir);
+    }
 }

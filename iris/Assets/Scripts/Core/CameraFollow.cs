@@ -12,8 +12,8 @@ public class CameraFollow : MonoBehaviour
 
     [Header("追従")]
     [SerializeField] private Transform target;
-    [SerializeField] private Vector3   normalOffset    = new Vector3(0f, 15f, -8f);
-    [SerializeField] private Vector3   bossOffset      = new Vector3(0f, 12f, -6f);
+    [SerializeField] private Vector3   normalOffset    = new Vector3(0f, 8f, -5f);
+    [SerializeField] private Vector3   bossOffset      = new Vector3(0f, 6f, -4f);
     [SerializeField] private float     followSmooth    = 0.1f;
     [SerializeField] private float     zoomSmoothTime  = 1.5f;
 

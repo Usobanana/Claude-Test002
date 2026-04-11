@@ -350,8 +350,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
   target: {fileID: 0}
-  normalOffset: {x: 0, y: 15, z: -8}
-  bossOffset: {x: 0, y: 12, z: -6}
+  normalOffset: {x: 0, y: 8, z: -5}
+  bossOffset: {x: 0, y: 6, z: -4}
   followSmooth: 0.1
   zoomSmoothTime: 1.5
   playerHurtMag: 0.3
@@ -1579,6 +1579,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2078267886233782877, guid: f66368276b91a1748853d193ef82c797, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 0e5aa52109c40e7489ef70ec891af431, type: 2}
     - target: {fileID: 6503124612672467120, guid: f66368276b91a1748853d193ef82c797, type: 3}
       propertyPath: m_Name
       value: Player

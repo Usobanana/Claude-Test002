@@ -4,7 +4,7 @@ using TMPro;
 
 /// <summary>
 /// フィールド中のプレイヤーHUD
-/// HP/スタミナバー + スキルクールダウン表示
+/// HP/スタミナバー + スキルクールダウン表示 + AUTO ON/OFF ボタン
 /// </summary>
 public class PlayerHUD : MonoBehaviour
 {
@@ -20,16 +20,27 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private Image ultOverlay;
     [SerializeField] private Image chainOverlay;
 
-    private CharacterEntity entity;
-    private SkillSystem     skillSystem;
+    [Header("AUTO 切り替えボタン（右上）")]
+    [SerializeField] private Button          autoToggleButton;
+    [SerializeField] private TextMeshProUGUI autoToggleText;
+
+    private CharacterEntity  entity;
+    private SkillSystem      skillSystem;
+    private AutoAttackSystem autoAttackSystem;
 
     void Start()
     {
         var player = GameObject.FindWithTag("Player");
         if (player == null) return;
 
-        entity      = player.GetComponent<CharacterEntity>();
-        skillSystem = player.GetComponent<SkillSystem>();
+        entity           = player.GetComponent<CharacterEntity>();
+        skillSystem      = player.GetComponent<SkillSystem>();
+        autoAttackSystem = player.GetComponent<AutoAttackSystem>();
+
+        // AUTO ボタン初期化
+        if (autoToggleButton != null)
+            autoToggleButton.onClick.AddListener(ToggleAutoMode);
+        UpdateAutoButtonText();
 
         if (entity != null)
         {
@@ -86,5 +97,23 @@ public class PlayerHUD : MonoBehaviour
     {
         if (overlay == null) return;
         overlay.fillAmount = 1f - progress;
+    }
+
+    // ─────────────────────────────────────────
+    // AUTO ON/OFF
+    // ─────────────────────────────────────────
+
+    private void ToggleAutoMode()
+    {
+        if (autoAttackSystem == null) return;
+        autoAttackSystem.SetAutoMode(!autoAttackSystem.IsAutoMode);
+        UpdateAutoButtonText();
+    }
+
+    private void UpdateAutoButtonText()
+    {
+        if (autoToggleText == null) return;
+        bool isAuto = autoAttackSystem != null && autoAttackSystem.IsAutoMode;
+        autoToggleText.text = isAuto ? "AUTO ON" : "AUTO OFF";
     }
 }

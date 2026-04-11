@@ -2,63 +2,104 @@ using UnityEngine;
 
 /// <summary>
 /// オートアタックシステム
-/// 攻撃範囲（円形）内のエネミーを向きで選定し、自動的に攻撃する
+/// ・AUTO ON  : attackInterval ごとにターゲット更新 → 向き補正 → ダメージ + アニメーション
+/// ・AUTO OFF : PlayerAnimator(Input モード)のコンボ進行時に OnComboHit() でダメージのみ処理
 /// </summary>
 [RequireComponent(typeof(CharacterEntity))]
 [RequireComponent(typeof(PlayerController))]
 public class AutoAttackSystem : MonoBehaviour
 {
-    private CharacterEntity  entity;
-    private PlayerController controller;
-    private Animator         anim;
-
-    private static readonly int AttackHash = Animator.StringToHash("Attack");
+    private CharacterEntity    entity;
+    private PlayerController   controller;
+    private PlayerAnimator     playerAnim;
+    private AttackRangeIndicator rangeIndicator;
 
     private float attackTimer;
 
-    // 現在のターゲット
-    public IDamageable CurrentTarget { get; private set; }
+    // --- 公開プロパティ ---
+    public IDamageable CurrentTarget   { get; private set; }
     public Transform   TargetTransform { get; private set; }
+    public bool        IsAutoMode      { get; private set; } = false;
 
     void Awake()
     {
-        entity     = GetComponent<CharacterEntity>();
-        controller = GetComponent<PlayerController>();
-        anim       = GetComponentInChildren<Animator>();
+        entity         = GetComponent<CharacterEntity>();
+        controller     = GetComponent<PlayerController>();
+        playerAnim     = GetComponent<PlayerAnimator>();
+        rangeIndicator = GetComponent<AttackRangeIndicator>();
     }
+
+    // ─────────────────────────────────────────
+    // 公開メソッド
+    // ─────────────────────────────────────────
+
+    /// <summary>AUTO モードを切り替える（PlayerHUD のボタンから呼ぶ）</summary>
+    public void SetAutoMode(bool enabled)
+    {
+        IsAutoMode = enabled;
+
+        if (playerAnim != null)
+            playerAnim.Mode = enabled ? ComboMode.Auto : ComboMode.Input;
+
+        if (rangeIndicator != null)
+            rangeIndicator.SetVisible(enabled);
+
+        if (!enabled) ClearTarget();
+    }
+
+    /// <summary>
+    /// Input モード時に PlayerAnimator.AdvanceCombo() から呼ばれる。
+    /// ターゲット更新 → ダメージ処理を行う。
+    /// </summary>
+    public void OnComboHit()
+    {
+        if (entity == null || entity.Stats == null) return;
+        UpdateTarget();
+        PerformDamage();
+    }
+
+    // ─────────────────────────────────────────
+    // Unity ライフサイクル
+    // ─────────────────────────────────────────
 
     void Update()
     {
         if (!entity.IsAlive || entity.Stats == null) return;
+        if (!IsAutoMode) return;    // Manual モードは PlayerAnimator が担当
 
         attackTimer += Time.deltaTime;
-
         UpdateTarget();
 
-        if (CurrentTarget != null && attackTimer >= entity.Data.attackInterval)
-        {
-            attackTimer = 0f;
-            PerformAttack();
-        }
+        if (CurrentTarget == null || !CurrentTarget.IsAlive) return;
+        if (attackTimer < entity.Data.attackInterval) return;
+
+        attackTimer = 0f;
+
+        // ターゲットへ向く
+        if (TargetTransform != null)
+            controller.FaceToward(TargetTransform.position);
+
+        PerformDamage();
+
+        if (playerAnim != null)
+            playerAnim.TriggerAutoAttack();
     }
 
-    /// <summary>
-    /// 攻撃範囲内のエネミーから向きで最適なターゲットを選定する
-    /// </summary>
+    // ─────────────────────────────────────────
+    // 内部ロジック
+    // ─────────────────────────────────────────
+
     private void UpdateTarget()
     {
+        if (entity.Data == null) return;
+
         float range = entity.Data.attackRange;
         var   hits  = Physics.OverlapSphere(transform.position, range);
 
-        if (hits.Length == 0)
-        {
-            CurrentTarget    = null;
-            TargetTransform  = null;
-            return;
-        }
+        if (hits.Length == 0) { ClearTarget(); return; }
 
-        Vector3 facing      = controller.FacingDirection;
-        float   bestScore   = -1f;
+        Vector3     facing        = controller.FacingDirection;
+        float       bestScore     = -1f;
         IDamageable bestTarget    = null;
         Transform   bestTransform = null;
 
@@ -72,9 +113,9 @@ public class AutoAttackSystem : MonoBehaviour
 
             if (score > bestScore)
             {
-                bestScore     = score;
-                bestTarget    = damageable;
-                bestTransform = hit.transform;
+                bestScore      = score;
+                bestTarget     = damageable;
+                bestTransform  = hit.transform;
             }
         }
 
@@ -82,23 +123,25 @@ public class AutoAttackSystem : MonoBehaviour
         TargetTransform = bestTransform;
     }
 
-    /// <summary>
-    /// 通常攻撃を実行する（スキル倍率1.0）
-    /// </summary>
-    private void PerformAttack()
+    private void PerformDamage()
     {
         if (CurrentTarget == null || !CurrentTarget.IsAlive) return;
 
         float damage = DamageCalculator.Calculate(
-            attackerStats:    entity.Stats,
-            skillMultiplier:  1.0f,
-            targetDefense:    GetTargetDefense(),
-            attackerLevel:    entity.Level
+            attackerStats:   entity.Stats,
+            skillMultiplier: 1.0f,
+            targetDefense:   GetTargetDefense(),
+            attackerLevel:   entity.Level
         );
 
         CurrentTarget.TakeDamage(damage);
-        anim?.SetTrigger(AttackHash);
         Debug.Log($"[AutoAttack] {entity.Data.characterName} → {TargetTransform.name} : {damage} ダメージ");
+    }
+
+    private void ClearTarget()
+    {
+        CurrentTarget   = null;
+        TargetTransform = null;
     }
 
     private float GetTargetDefense()
@@ -107,9 +150,6 @@ public class AutoAttackSystem : MonoBehaviour
         return targetEntity?.Stats?.defense ?? 0f;
     }
 
-    /// <summary>
-    /// 攻撃範囲をGizmosで可視化
-    /// </summary>
     void OnDrawGizmosSelected()
     {
         if (entity?.Data == null) return;
