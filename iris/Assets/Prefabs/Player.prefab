@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 2622155972742737340}
   - component: {fileID: 6535810082951780387}
   - component: {fileID: 5998765677340942415}
+  - component: {fileID: 1530738407149712541}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -225,6 +226,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c96c2dacc5590ba4cb961984846d3603, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
+  comboMode: 1
+  comboWindowDuration: 1
+--- !u!114 &1530738407149712541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6503124612672467120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd14282eef70fd84e8ba1320deff794a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackRangeIndicator
+  segments: 48
+  yOffset: 0.05
+  lineColor: {r: 1, g: 0.9, b: 0.2, a: 0.7}
+  lineWidth: 0.04
 --- !u!1001 &2078267886241185597
 PrefabInstance:
   m_ObjectHideFlags: 0
