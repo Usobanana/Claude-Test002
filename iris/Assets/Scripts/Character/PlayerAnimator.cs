@@ -75,11 +75,13 @@ public class PlayerAnimator : MonoBehaviour
     private void OnHurt()
     {
         AudioManager.Instance?.PlaySE(SFX.PlayerHurt);
+        EffectManager.Instance?.PlayHitEffect(transform.position);
     }
 
     private void OnDeath()
     {
         anim.SetBool(IsDeadHash, true);
         AudioManager.Instance?.PlaySE(SFX.PlayerDeath);
+        EffectManager.Instance?.PlayDeathEffect(transform.position);
     }
 }

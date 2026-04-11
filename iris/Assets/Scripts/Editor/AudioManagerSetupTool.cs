@@ -37,7 +37,47 @@ public static class AudioManagerSetupTool
             Debug.Log("[AudioSetup] SceneBGM を追加しました");
         }
 
-        Debug.Log("[AudioSetup] 完了 → AudioClip を Inspector でアサインしてください");
+        AssignAudioClips(managers.GetComponent<AudioManager>());
+        Debug.Log("[AudioSetup] 完了");
+    }
+
+    [MenuItem("Game/Assign AudioClips to AudioManager")]
+    public static void AssignAudioClips()
+    {
+        var managers = GameObject.Find("SceneManagers");
+        if (managers == null) { Debug.LogError("[AudioSetup] SceneManagers が見つかりません"); return; }
+        var am = managers.GetComponent<AudioManager>();
+        if (am == null) { Debug.LogError("[AudioSetup] AudioManager が見つかりません"); return; }
+        AssignAudioClips(am);
+        EditorUtility.SetDirty(am);
+    }
+
+    private static void AssignAudioClips(AudioManager am)
+    {
+        if (am == null) return;
+        var so = new SerializedObject(am);
+
+        AssignClip(so, "fieldBGM",              "Assets/Audio/BGM/BGM_Battle_2.mp3");
+        AssignClip(so, "bossBGM",               "Assets/Audio/BGM/BGM_Battle_2.mp3");
+        AssignClip(so, "playerAttackSE",        "Assets/Audio/SE/Battle/Slash/SE_swing1.mp3");
+        AssignClip(so, "playerDodgeSE",         "Assets/Audio/SE/Battle/Slash/SE_swing2.mp3");
+        AssignClip(so, "playerHurtSE",          "Assets/Audio/SE/Battle/Hit/SE_Hit_1.mp3");
+        AssignClip(so, "playerDeathSE",         "Assets/Audio/SE/Battle/Hit/SE_Hit_3.mp3");
+        AssignClip(so, "enemyHurtSE",           "Assets/Audio/SE/Battle/Hit/SE_Hit_2.mp3");
+        AssignClip(so, "enemyDeathSE",          "Assets/Audio/SE/Battle/Hit/SE_Hit_3.mp3");
+        AssignClip(so, "bossPhaseTransitionSE", "Assets/Audio/SE/Battle/Hit/SE_Hit_3.mp3");
+        AssignClip(so, "bossDeathSE",           "Assets/Audio/SE/Battle/Hit/SE_Hit_3.mp3");
+        AssignClip(so, "questClearSE",          "Assets/Audio/SE/Battle/Hit/SE_Hit_1.mp3");
+
+        so.ApplyModifiedProperties();
+        Debug.Log("[AudioSetup] AudioClip のアサイン完了");
+    }
+
+    private static void AssignClip(SerializedObject so, string fieldName, string assetPath)
+    {
+        var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+        if (clip == null) { Debug.LogWarning($"[AudioSetup] クリップが見つかりません: {assetPath}"); return; }
+        so.FindProperty(fieldName).objectReferenceValue = clip;
     }
 
     [MenuItem("Game/Add SceneBGM to Current Scene")]

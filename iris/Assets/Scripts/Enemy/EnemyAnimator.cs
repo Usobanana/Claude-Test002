@@ -80,6 +80,7 @@ public class EnemyAnimator : MonoBehaviour
     {
         if (anim != null) anim.SetTrigger(HitReactHash);
         AudioManager.Instance?.PlaySE(SFX.EnemyHurt);
+        EffectManager.Instance?.PlayHitEffect(transform.position);
     }
 
     private void TriggerDeath()
@@ -87,6 +88,7 @@ public class EnemyAnimator : MonoBehaviour
         if (anim != null) anim.SetBool(IsDeadHash, true);
         AudioManager.Instance?.PlaySE(SFX.EnemyDeath);
         CameraFollow.Instance?.ShakeEnemyDeath();
+        EffectManager.Instance?.PlayDeathEffect(transform.position);
     }
 
     private void TriggerBossDeath()
@@ -94,6 +96,7 @@ public class EnemyAnimator : MonoBehaviour
         if (anim != null) anim.SetBool(IsDeadHash, true);
         AudioManager.Instance?.PlaySE(SFX.BossDeath);
         CameraFollow.Instance?.ShakeBossDeath();
+        EffectManager.Instance?.PlayBossDeathEffect(transform.position);
     }
 
     private void TriggerPhaseTransition()
