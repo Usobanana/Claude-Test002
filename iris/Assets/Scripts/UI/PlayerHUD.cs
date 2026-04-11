@@ -37,6 +37,15 @@ public class PlayerHUD : MonoBehaviour
         skillSystem      = player.GetComponent<SkillSystem>();
         autoAttackSystem = player.GetComponent<AutoAttackSystem>();
 
+        // シリアライズ参照が外れた場合は動的検索
+        if (autoToggleButton == null)
+        {
+            var t = transform.Find("AutoToggleButton");
+            if (t != null) autoToggleButton = t.GetComponent<Button>();
+        }
+        if (autoToggleText == null && autoToggleButton != null)
+            autoToggleText = autoToggleButton.GetComponentInChildren<TextMeshProUGUI>();
+
         // AUTO ボタン初期化
         if (autoToggleButton != null)
             autoToggleButton.onClick.AddListener(ToggleAutoMode);
