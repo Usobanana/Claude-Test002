@@ -185,6 +185,8 @@ public class PlayerAnimator : MonoBehaviour
     private void UpdateComboWindow()
     {
         if (!inComboWindow) return;
+        // Auto モードはタイマーによるリセット不要（attackInterval がタイミングを制御）
+        if (comboMode == ComboMode.Auto) return;
 
         comboWindowTimer -= Time.deltaTime;
         if (comboWindowTimer <= 0f)
