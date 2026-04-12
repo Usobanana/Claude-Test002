@@ -99,15 +99,48 @@ public class PlayerAnimator : MonoBehaviour
 
     void Awake()
     {
-        anim       = GetComponentInChildren<Animator>();
         controller = GetComponent<PlayerController>();
         entity     = GetComponent<CharacterEntity>();
         autoAttack = GetComponent<AutoAttackSystem>();
+        AcquireAnimator();
+    }
+
+    /// <summary>
+    /// モデル差し替え後にAnimator参照を更新する。PlayerAppearance.SwapModel()から呼ぶ。
+    /// newAnim を渡すと確実にそのAnimatorを使う（タイミング問題を回避）。
+    /// </summary>
+    public void RefreshAnimator(Animator newAnim = null)
+    {
+        if (newAnim != null)
+            anim = newAnim;
+        else
+            anim = GetComponentInChildren<Animator>();
 
         if (anim != null)
         {
             swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
             swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
+        }
+        else
+        {
+            swordArmLayerIdx  = -1;
+            swordHandLayerIdx = -1;
+        }
+        ResetCombo();
+    }
+
+    private void AcquireAnimator()
+    {
+        anim = GetComponentInChildren<Animator>();
+        if (anim != null)
+        {
+            swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
+            swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
+        }
+        else
+        {
+            swordArmLayerIdx  = -1;
+            swordHandLayerIdx = -1;
         }
     }
 

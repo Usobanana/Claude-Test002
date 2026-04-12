@@ -40,7 +40,7 @@ public static class PlayerAppearanceSetupTool
         // 未実行の場合は PlayerAppearance.AttachWeapon() が Hand_R へ自動フォールバックする
         so.FindProperty("weaponBoneName").stringValue           = "Prop_R_Socket";
         so.FindProperty("weaponPositionOffset").vector3Value    = Vector3.zero;
-        so.FindProperty("weaponRotationOffset").vector3Value    = Vector3.zero;
+        so.FindProperty("weaponRotationOffset").vector3Value    = new Vector3(180f, 0f, 0f);
         so.ApplyModifiedProperties();
 
         AttachWeaponInEditor(player, appearance);

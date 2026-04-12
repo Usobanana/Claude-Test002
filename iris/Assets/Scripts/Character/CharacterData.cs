@@ -23,6 +23,12 @@ public class CharacterData : ScriptableObject
     [Header("武器種")]
     public WeaponType weaponType;
 
+    [Header("ビジュアル")]
+    [Tooltip("このキャラクターの3Dモデル Prefab（未設定なら差し替えなし）")]
+    public GameObject modelPrefab;
+    [Tooltip("このキャラクターのデフォルト武器モデル Prefab（未設定なら PlayerAppearance の weaponPrefab を使用）")]
+    public GameObject weaponModelPrefab;
+
     [Header("解放設定")]
     public UnlockType unlockType;
 }
