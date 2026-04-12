@@ -155,7 +155,7 @@ public static class PlayerAnimatorSetupTool
     private static void ReassignController(AnimatorController ac)
     {
         int count = 0;
-        foreach (var animator in Object.FindObjectsByType<Animator>(FindObjectsSortMode.None))
+        foreach (var animator in Object.FindObjectsByType<Animator>(FindObjectsInactive.Exclude))
         {
             // Player タグまたは "Player" 名のオブジェクト配下の Animator を対象
             var root = animator.transform.root;

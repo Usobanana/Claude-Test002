@@ -49,6 +49,8 @@ public class EnemyController : MonoBehaviour, IDamageable
     void Update()
     {
         if (!IsAlive) return;
+        // EnemyBrain がある場合は自前 AI をスキップ
+        if (GetComponent<EnemyBrain>() != null) return;
         if (playerTransform == null) return;
 
         float dist = Vector3.Distance(transform.position, playerTransform.position);
@@ -98,6 +100,9 @@ public class EnemyController : MonoBehaviour, IDamageable
             OnHitReactAnim?.Invoke();
         }
     }
+
+    /// <summary>BehaviorTree (AttackNode) から呼ばれる公開攻撃メソッド。</summary>
+    public void DoAttack() => AttackPlayer();
 
     private void AttackPlayer()
     {

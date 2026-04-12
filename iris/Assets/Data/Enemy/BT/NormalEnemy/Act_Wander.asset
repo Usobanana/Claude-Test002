@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f02ad6668c8c12842b2282e6029c2332, type: 3}
+  m_Name: Act_Wander
+  m_EditorClassIdentifier:
+  description: "\u8996\u91CE\u5916\u306E\u5FA9\u53F0\u5F8C"
+  wanderRadius: 8
+  waitDuration: 2
+  navSampleDistance: 2

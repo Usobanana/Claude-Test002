@@ -3,12 +3,13 @@ using UnityEditor;
 using UnityEditor.Animations;
 
 /// <summary>
-/// PlayerAnimator の Inspector に AnimatorController で使用しているクリップ一覧を表示し変更できる。
+/// EnemyAnimator の Inspector に AnimatorController で使用しているクリップ一覧を表示し変更できる。
+/// PlayerAnimatorEditor と同じ構造。
 /// ・クリップを ObjectField で直接ドラッグ差し替え可能
 /// ・変更は AnimatorController アセットに即時反映（Undo 対応）
 /// </summary>
-[CustomEditor(typeof(PlayerAnimator))]
-public class PlayerAnimatorEditor : Editor
+[CustomEditor(typeof(EnemyAnimator))]
+public class EnemyAnimatorEditor : Editor
 {
     private bool showClips = true;
     private bool clipsDirty = false;
@@ -19,8 +20,8 @@ public class PlayerAnimatorEditor : Editor
 
         EditorGUILayout.Space(8f);
 
-        var pa       = (PlayerAnimator)target;
-        var animator = pa.GetComponentInChildren<Animator>();
+        var ea       = (EnemyAnimator)target;
+        var animator = ea.GetComponentInChildren<Animator>();
 
         if (animator == null)
         {
@@ -105,7 +106,7 @@ public class PlayerAnimatorEditor : Editor
             {
                 AssetDatabase.SaveAssets();
                 clipsDirty = false;
-                Debug.Log("[PlayerAnimatorEditor] AnimatorController を保存しました");
+                Debug.Log("[EnemyAnimatorEditor] AnimatorController を保存しました");
             }
 
             GUI.backgroundColor = btnColor;

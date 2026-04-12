@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381bfd9b16a7e724a94d9d0d5fa00f14, type: 3}
+  m_Name: Sel_Root
+  m_EditorClassIdentifier:
+  description: "Root: \u6226\u95D8 or \u5FA9\u53F0\u5F8C"
+  children:
+  - {fileID: 11400000, guid: 6b4b88b903ce4998a2eea933e8c56e80, type: 2}
+  - {fileID: 11400000, guid: 7554363934df425ca4568eaf034788b1, type: 2}

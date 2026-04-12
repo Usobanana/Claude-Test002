@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7baa6779f040e3a4fb13841a78095d7a, type: 3}
+  m_Name: Seq_Combat
+  m_EditorClassIdentifier:
+  description: "\u8996\u91CE\u5185\u306A\u3089\u6226\u95D8"
+  children:
+  - {fileID: 11400000, guid: 792c90f917a8429e9bc2a46b3c6afb43, type: 2}
+  - {fileID: 11400000, guid: 1a7faebc74c1478ab503d55b7221bca3, type: 2}

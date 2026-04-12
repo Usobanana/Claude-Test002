@@ -77,6 +77,8 @@ public class BossController : MonoBehaviour, IDamageable
         if (playerTransform == null) return;
 
         CheckPhaseTransition();
+        // EnemyBrain がある場合は自前 AI をスキップ
+        if (GetComponent<EnemyBrain>() != null) return;
         BehaviorUpdate();
     }
 
@@ -164,6 +166,9 @@ public class BossController : MonoBehaviour, IDamageable
             }
         }
     }
+
+    /// <summary>BehaviorTree (AttackNode) から呼ばれる公開攻撃メソッド。</summary>
+    public void DoNormalAttack() => NormalAttack();
 
     private void NormalAttack()
     {

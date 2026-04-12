@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -17,12 +18,22 @@ public class EnemyAnimator : MonoBehaviour
     private static readonly int HitReactHash  = Animator.StringToHash("HitReact");
     private static readonly int IsDeadHash    = Animator.StringToHash("IsDead");
 
+    private bool isDead = false;
+
     void Awake()
     {
         anim  = GetComponentInChildren<Animator>();
         agent = GetComponent<NavMeshAgent>();
         enemy = GetComponent<EnemyController>();
         boss  = GetComponent<BossController>();
+    }
+
+    /// <summary>
+    /// モデル差し替え後にAnimator参照を更新する。EnemyAppearance.SwapModel()から呼ぶ。
+    /// </summary>
+    public void RefreshAnimator(Animator newAnim = null)
+    {
+        anim = newAnim != null ? newAnim : GetComponentInChildren<Animator>();
     }
 
     void Start()
@@ -61,7 +72,7 @@ public class EnemyAnimator : MonoBehaviour
 
     void Update()
     {
-        if (anim == null) return;
+        if (anim == null || isDead) return;
 
         // NavMeshAgent の速度をSpeedパラメーターに反映
         float speed = 0f;
@@ -85,7 +96,12 @@ public class EnemyAnimator : MonoBehaviour
 
     private void TriggerDeath()
     {
-        if (anim != null) anim.SetBool(IsDeadHash, true);
+        isDead = true;
+        if (anim != null)
+        {
+            anim.SetBool(IsDeadHash, true);
+            StartCoroutine(FreezeOnDeathComplete());
+        }
         AudioManager.Instance?.PlaySE(SFX.EnemyDeath);
         CameraFollow.Instance?.ShakeEnemyDeath();
         EffectManager.Instance?.PlayDeathEffect(transform.position);
@@ -93,10 +109,55 @@ public class EnemyAnimator : MonoBehaviour
 
     private void TriggerBossDeath()
     {
-        if (anim != null) anim.SetBool(IsDeadHash, true);
+        isDead = true;
+        if (anim != null)
+        {
+            anim.SetBool(IsDeadHash, true);
+            StartCoroutine(FreezeOnDeathComplete());
+        }
         AudioManager.Instance?.PlaySE(SFX.BossDeath);
         CameraFollow.Instance?.ShakeBossDeath();
         EffectManager.Instance?.PlayBossDeathEffect(transform.position);
+    }
+
+    /// <summary>
+    /// 死亡遷移の完了後に IsDead を false に戻して Any State の再発火を防ぎ、
+    /// アニメーションが1周したら Animator をフリーズさせる。
+    /// </summary>
+    private IEnumerator FreezeOnDeathComplete()
+    {
+        if (anim == null) yield break;
+
+        // ── Step1: 遷移が完了するまで待つ ──
+        // 遷移開始を待つ（最大30フレーム）
+        int waitFrames = 0;
+        while (!anim.IsInTransition(0) && waitFrames < 30)
+        {
+            yield return null;
+            waitFrames++;
+        }
+        // 遷移完了を待つ
+        while (anim.IsInTransition(0))
+            yield return null;
+
+        if (anim == null) yield break;
+
+        // ── Step2: IsDead を false に戻す ──
+        // 死亡ステートに入った後なら Bool を戻しても死亡ステートは維持される。
+        // Any State → Death が再発火するのを防ぐ。
+        anim.SetBool(IsDeadHash, false);
+
+        // ── Step3: アニメーションが終わったらフリーズ ──
+        while (anim != null && anim.gameObject.activeInHierarchy)
+        {
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (info.normalizedTime >= 0.95f)
+            {
+                anim.speed = 0f;
+                yield break;
+            }
+            yield return null;
+        }
     }
 
     private void TriggerPhaseTransition()
