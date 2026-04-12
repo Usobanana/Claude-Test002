@@ -116,6 +116,14 @@ public class PlayerAppearance : MonoBehaviour
         // PlayerAnimator の参照を新Animatorに更新
         GetComponent<PlayerAnimator>()?.RefreshAnimator(newAnim);
 
+        // AnimationEventReceiver を Animator の GameObject に追加（なければ）
+        if (newAnim != null)
+        {
+            var animGO = newAnim.gameObject;
+            if (animGO.GetComponent<AnimationEventReceiver>() == null)
+                animGO.AddComponent<AnimationEventReceiver>();
+        }
+
         // Destroy は遅延破棄のため、旧モデルのボーンが消えてから武器をアタッチする
         StartCoroutine(AttachWeaponNextFrame());
         Debug.Log($"[PlayerAppearance] モデルを '{newModelPrefab.name}' に差し替えました");

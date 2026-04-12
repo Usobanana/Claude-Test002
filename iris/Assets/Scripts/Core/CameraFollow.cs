@@ -110,6 +110,9 @@ public class CameraFollow : MonoBehaviour
         shakeTimer     = duration;
     }
 
+    /// <summary>プレイヤー攻撃ヒット時シェイク（AutoAttackSystem から呼ぶ）</summary>
+    public void ShakePlayerAttackHit(float magnitude, float duration) => Shake(magnitude, duration);
+
     /// <summary>プレイヤー被弾シェイク（EnemyAnimator などから呼ぶ）</summary>
     public void ShakePlayerHurt()  => Shake(playerHurtMag, playerHurtDur);
 

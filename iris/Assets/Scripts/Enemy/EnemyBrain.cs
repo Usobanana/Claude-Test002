@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,9 +13,16 @@ public class EnemyBrain : MonoBehaviour
     [Tooltip("実行する BehaviorTree アセット")]
     public BehaviorTree behaviorTree;
 
+    [Header("被弾スタン")]
+    [Tooltip("被弾時にBTと移動を止める時間（秒）。HitReactアニメーションの長さに合わせる。")]
+    public float hitStunDuration = 0.6f;
+
     private EnemyBlackboard bb;
     private EnemyController enemy;
     private BossController  boss;
+
+    private bool  isHitStunned;
+    private float hitStunTimer;
 
     void Awake()
     {
@@ -32,6 +40,16 @@ public class EnemyBrain : MonoBehaviour
     {
         var player = GameObject.FindWithTag("Player");
         if (player != null) bb.target = player.transform;
+
+        // 被弾イベントを購読
+        if (enemy != null) enemy.OnHitReactAnim += OnHit;
+        if (boss  != null) boss.OnHitReactAnim  += OnHit;
+    }
+
+    void OnDestroy()
+    {
+        if (enemy != null) enemy.OnHitReactAnim -= OnHit;
+        if (boss  != null) boss.OnHitReactAnim  -= OnHit;
     }
 
     void Update()
@@ -44,11 +62,85 @@ public class EnemyBrain : MonoBehaviour
         if (boss  != null && !boss.IsAlive)  alive = false;
         if (!alive) return;
 
+        // 被弾スタン中: BTをスキップし、エージェントを停止
+        if (isHitStunned)
+        {
+            hitStunTimer -= Time.deltaTime;
+            if (hitStunTimer <= 0f)
+                isHitStunned = false;
+            else
+            {
+                StopAgent();
+                return;
+            }
+        }
+
         // ターゲットへの距離を更新
         if (bb.target != null)
             bb.distanceToTarget = Vector3.Distance(transform.position, bb.target.position);
 
         behaviorTree.Tick(bb);
+    }
+
+    private void OnHit()
+    {
+        isHitStunned = true;
+        hitStunTimer = hitStunDuration;
+        StopAgent();
+    }
+
+    private void StopAgent()
+    {
+        if (bb?.agent != null && bb.agent.enabled && bb.agent.isOnNavMesh)
+        {
+            bb.agent.ResetPath();
+            bb.agent.isStopped = true;
+        }
+    }
+
+    /// <summary>攻撃ヒット時にノックバックを適用する。AttackHitbox から呼ばれる。</summary>
+    public void ApplyKnockback(Vector3 attackerPosition, float force, float duration)
+    {
+        StartCoroutine(KnockbackRoutine(attackerPosition, force, duration));
+    }
+
+    private IEnumerator KnockbackRoutine(Vector3 attackerPosition, float force, float duration)
+    {
+        if (bb?.agent == null) yield break;
+
+        // ノックバック方向（Y成分除去・正規化）
+        Vector3 dir = transform.position - attackerPosition;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+        dir.Normalize();
+
+        Vector3 startPos = transform.position;
+        Vector3 targetPos = startPos + dir * force;
+
+        // NavMesh 上の有効な座標にクランプ
+        if (NavMesh.SamplePosition(targetPos, out NavMeshHit navHit, force + 1f, NavMesh.AllAreas))
+            targetPos = navHit.position;
+        else
+            targetPos = startPos;
+
+        // NavMeshAgent を一時無効化して自由移動
+        bb.agent.enabled = false;
+
+        // unscaledDeltaTime を使用してヒットストップ（timeScale 変化）の影響を受けない
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+            yield return null;
+        }
+        transform.position = targetPos;
+
+        // NavMeshAgent を再有効化し位置を同期
+        bb.agent.enabled = true;
+        if (bb.agent.isOnNavMesh)
+            bb.agent.Warp(targetPos);
     }
 
     /// <summary>シーンビューで視野範囲を可視化する。</summary>

@@ -34,6 +34,7 @@ public class BossController : MonoBehaviour, IDamageable
     // --- IDamageable ---
     public bool        IsAlive  => currentHp > 0f;
     public float       HpRatio  => maxHp > 0f ? currentHp / maxHp : 0f;
+    public float       Defense  => defense;
     public ElementType Element  => element;
 
     // 現在のフェーズ

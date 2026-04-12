@@ -16,10 +16,12 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip bossBGM;
 
     [Header("SE クリップ — プレイヤー")]
-    [SerializeField] private AudioClip playerAttackSE;
-    [SerializeField] private AudioClip playerDodgeSE;
-    [SerializeField] private AudioClip playerHurtSE;
-    [SerializeField] private AudioClip playerDeathSE;
+    [SerializeField] private AudioClip   playerAttackSE;
+    [SerializeField] private AudioClip[] playerSwingSE;
+    [SerializeField] private AudioClip[] playerHitSE;
+    [SerializeField] private AudioClip   playerDodgeSE;
+    [SerializeField] private AudioClip   playerHurtSE;
+    [SerializeField] private AudioClip   playerDeathSE;
 
     [Header("SE クリップ — エネミー")]
     [SerializeField] private AudioClip enemyHurtSE;
@@ -108,6 +110,8 @@ public class AudioManager : MonoBehaviour
         AudioClip clip = sfx switch
         {
             SFX.PlayerAttack         => playerAttackSE,
+            SFX.PlayerSwing          => RandomClip(playerSwingSE),
+            SFX.PlayerHit            => RandomClip(playerHitSE),
             SFX.PlayerDodge          => playerDodgeSE,
             SFX.PlayerHurt           => playerHurtSE,
             SFX.PlayerDeath          => playerDeathSE,
@@ -122,12 +126,20 @@ public class AudioManager : MonoBehaviour
         if (clip == null) return;
         seSource.PlayOneShot(clip, seVolume);
     }
+
+    private static AudioClip RandomClip(AudioClip[] clips)
+    {
+        if (clips == null || clips.Length == 0) return null;
+        return clips[Random.Range(0, clips.Length)];
+    }
 }
 
 /// <summary>再生するSEの種類</summary>
 public enum SFX
 {
     PlayerAttack,
+    PlayerSwing,
+    PlayerHit,
     PlayerDodge,
     PlayerHurt,
     PlayerDeath,

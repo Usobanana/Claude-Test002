@@ -18,7 +18,8 @@ public class EnemyAnimator : MonoBehaviour
     private static readonly int HitReactHash  = Animator.StringToHash("HitReact");
     private static readonly int IsDeadHash    = Animator.StringToHash("IsDead");
 
-    private bool isDead = false;
+    private bool isDead       = false;
+    private bool isHitReacting = false;
 
     void Awake()
     {
@@ -89,9 +90,42 @@ public class EnemyAnimator : MonoBehaviour
 
     private void TriggerHitReact()
     {
+        if (isDead) return;
+
+        // アニメーションは毎ヒット必ず再トリガー（ノックバックと同時再生のため）
         if (anim != null) anim.SetTrigger(HitReactHash);
+
+        // SE・エフェクト・終了待ちコルーチンは重複起動しない
+        if (isHitReacting) return;
+
+        isHitReacting = true;
         AudioManager.Instance?.PlaySE(SFX.EnemyHurt);
         EffectManager.Instance?.PlayHitEffect(transform.position);
+        StartCoroutine(WaitForHitReactEnd());
+    }
+
+    /// <summary>HitReact アニメーションが終わるまで待ってフラグを解除する。</summary>
+    private IEnumerator WaitForHitReactEnd()
+    {
+        if (anim == null) { isHitReacting = false; yield break; }
+
+        // 遷移開始を待つ（最大20フレーム）
+        int wait = 0;
+        while (!anim.IsInTransition(0) && wait < 20) { yield return null; wait++; }
+
+        // 遷移完了を待つ
+        while (anim != null && anim.IsInTransition(0))
+            yield return null;
+
+        // HitReact ステートの再生が終わるまで待つ
+        while (anim != null && anim.gameObject.activeInHierarchy)
+        {
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (info.normalizedTime >= 0.9f) break;
+            yield return null;
+        }
+
+        isHitReacting = false;
     }
 
     private void TriggerDeath()

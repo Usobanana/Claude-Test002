@@ -2,17 +2,19 @@ using UnityEngine;
 
 /// <summary>
 /// オートアタックシステム
-/// ・AUTO ON  : attackInterval ごとにターゲット更新 → 向き補正 → ダメージ + アニメーション
-/// ・AUTO OFF : PlayerAnimator(Input モード)のコンボ進行時に OnComboHit() でダメージのみ処理
+/// ・AUTO ON  : attackInterval ごとにターゲット更新 → 向き補正 → アニメーション再生
+/// ・AUTO OFF : PlayerAnimator(Input モード)のコンボ進行時にターゲット更新・向き補正のみ
+///
+/// ダメージ処理は Animation Event 経由で AttackHitbox が担当する。
 /// </summary>
 [RequireComponent(typeof(CharacterEntity))]
 [RequireComponent(typeof(PlayerController))]
 public class AutoAttackSystem : MonoBehaviour
 {
-    private CharacterEntity    entity;
-    private PlayerController   controller;
-    private PlayerAnimator     playerAnim;
-    private AttackRangeIndicator rangeIndicator;
+    private CharacterEntity       entity;
+    private PlayerController      controller;
+    private PlayerAnimator        playerAnim;
+    private AttackRangeIndicator  rangeIndicator;
 
     private float attackTimer;
 
@@ -49,13 +51,15 @@ public class AutoAttackSystem : MonoBehaviour
 
     /// <summary>
     /// Input モード時に PlayerAnimator.AdvanceCombo() から呼ばれる。
-    /// ターゲット更新 → ダメージ処理を行う。
+    /// ターゲット更新と向き補正のみ行う。ダメージは AttackHitbox が処理。
     /// </summary>
     public void OnComboHit()
     {
         if (entity == null || entity.Stats == null) return;
         UpdateTarget();
-        PerformDamage();
+
+        if (TargetTransform != null)
+            controller.FaceToward(TargetTransform.position);
     }
 
     // ─────────────────────────────────────────
@@ -65,7 +69,7 @@ public class AutoAttackSystem : MonoBehaviour
     void Update()
     {
         if (!entity.IsAlive || entity.Stats == null) return;
-        if (!IsAutoMode) return;    // Manual モードは PlayerAnimator が担当
+        if (!IsAutoMode) return;
 
         attackTimer += Time.deltaTime;
         UpdateTarget();
@@ -79,8 +83,7 @@ public class AutoAttackSystem : MonoBehaviour
         if (TargetTransform != null)
             controller.FaceToward(TargetTransform.position);
 
-        PerformDamage();
-
+        // アニメーション再生（ダメージは Animation Event で AttackHitbox が処理）
         if (playerAnim != null)
             playerAnim.TriggerAutoAttack();
     }
@@ -123,43 +126,28 @@ public class AutoAttackSystem : MonoBehaviour
         TargetTransform = bestTransform;
     }
 
-    private void PerformDamage()
-    {
-        if (CurrentTarget == null || !CurrentTarget.IsAlive) return;
-
-        float damage = DamageCalculator.Calculate(
-            attackerStats:   entity.Stats,
-            skillMultiplier: 1.0f,
-            targetDefense:   GetTargetDefense(),
-            attackerLevel:   entity.Level
-        );
-
-        CurrentTarget.TakeDamage(damage);
-        Debug.Log($"[AutoAttack] {entity.Data.characterName} → {TargetTransform.name} : {damage} ダメージ");
-    }
-
     private void ClearTarget()
     {
         CurrentTarget   = null;
         TargetTransform = null;
     }
 
-    private float GetTargetDefense()
-    {
-        var targetEntity = TargetTransform?.GetComponent<CharacterEntity>();
-        return targetEntity?.Stats?.defense ?? 0f;
-    }
-
-    void OnDrawGizmosSelected()
+    void OnDrawGizmos()
     {
         if (entity?.Data == null) return;
-        Gizmos.color = Color.yellow;
+
+        // ターゲット索敵範囲（薄い黄色）
+        Gizmos.color = new Color(1f, 1f, 0f, 0.1f);
+        Gizmos.DrawSphere(transform.position, entity.Data.attackRange);
+        Gizmos.color = new Color(1f, 1f, 0f, 0.4f);
         Gizmos.DrawWireSphere(transform.position, entity.Data.attackRange);
 
+        // 現在のターゲットへの線
         if (TargetTransform != null)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawLine(transform.position, TargetTransform.position);
+            Gizmos.DrawWireSphere(TargetTransform.position, 0.2f);
         }
     }
 }

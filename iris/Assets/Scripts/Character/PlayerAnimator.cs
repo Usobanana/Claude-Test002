@@ -20,8 +20,8 @@ public class PlayerAnimator : MonoBehaviour
     [Header("コンボ設定")]
     [Tooltip("Input モード：コンボウィンドウ持続時間（秒）")]
     [SerializeField] private float comboWindowDuration = 0.8f;
-    [Tooltip("攻撃開始からコンボ受付を開始するまでの遅延（秒）。LightCombo01Aは25f中15fがFollowThrough開始 = 約0.5s。")]
-    [SerializeField] private float comboWindowOpenDelay = 0.5f;
+    [Tooltip("攻撃後 OnComboWindowOpen が来ない場合のリセット上限（秒）")]
+    [SerializeField] private float comboResetTimeout   = 2.0f;
 
     // ─────────────────────────────────────────
     // 内部状態
@@ -33,10 +33,11 @@ public class PlayerAnimator : MonoBehaviour
     private AutoAttackSystem  autoAttack;
 
     // コンボ
-    private int   comboIndex          = 0;   // 0=待機, 1=1打目, 2=2打目, 3=3打目
-    private float comboWindowTimer    = 0f;
-    private bool  inComboWindow       = false;
-    private float comboWindowDelayTimer = 0f; // 攻撃開始→受付開始までの遅延タイマー
+    private int   comboIndex        = 0;    // 0=待機, 1=1打目, 2=2打目, 3=3打目
+    private float comboWindowTimer  = 0f;
+    private float comboResetTimer   = 0f;   // Animation Event が来ない場合のフォールバック
+    private bool  inComboWindow     = false;
+    private bool  pendingAttack     = false; // ウィンドウ外入力バッファ
 
     // アニメーターハッシュ
     private static readonly int SpeedHash      = Animator.StringToHash("Speed");
@@ -46,8 +47,8 @@ public class PlayerAnimator : MonoBehaviour
     private static readonly int IsDeadHash     = Animator.StringToHash("IsDead");
 
     // ベースレイヤーのステートハッシュ（ロコモーション判定用）
-    private static readonly int StateIdle      = Animator.StringToHash("Idle");
-    private static readonly int StateRun       = Animator.StringToHash("Run");
+    private static readonly int StateIdle       = Animator.StringToHash("Idle");
+    private static readonly int StateRun        = Animator.StringToHash("Run");
     private static readonly int StateAttack1RTI = Animator.StringToHash("Attack1_RTI");
     private static readonly int StateAttack2RTI = Animator.StringToHash("Attack2_RTI");
     private static readonly int StateAttack3RTI = Animator.StringToHash("Attack3_RTI");
@@ -210,15 +211,17 @@ public class PlayerAnimator : MonoBehaviour
 
     /// <summary>
     /// Input モード用（Update 内 / 外部から呼んでもよい）
-    /// コンボウィンドウ内、または1打目なら進行
+    /// コンボウィンドウ内または1打目なら即進行、それ以外はバッファに積む。
+    /// バッファは OnComboWindowOpen() で自動消費される。
     /// </summary>
     public void TriggerComboAttack()
     {
         if (comboMode != ComboMode.Input) return;
 
-        // 1打目は常に受け付ける。2打目以降はウィンドウ内のみ
         if (comboIndex == 0 || inComboWindow)
             AdvanceCombo();
+        else
+            pendingAttack = true; // ウィンドウが開くまで保持
     }
 
     // ─────────────────────────────────────────
@@ -256,11 +259,11 @@ public class PlayerAnimator : MonoBehaviour
         anim.SetTrigger(AttackHash);
         AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
 
-        // コンボウィンドウは即座には開かない。
-        // comboWindowOpenDelay 秒後に開くことで、振りかぶり中の誤入力を防ぐ。
-        inComboWindow         = false;
-        comboWindowTimer      = 0f;
-        comboWindowDelayTimer = comboWindowOpenDelay;
+        // ウィンドウは Animation Event (OnComboWindowOpen) が来るまで閉じたまま
+        inComboWindow    = false;
+        comboWindowTimer = 0f;
+        comboResetTimer  = comboResetTimeout; // フォールバック用タイムアウト開始
+        pendingAttack    = false;
 
         // Input モード時はダメージを AutoAttackSystem に委譲
         if (comboMode == ComboMode.Input)
@@ -269,8 +272,9 @@ public class PlayerAnimator : MonoBehaviour
 
     private void UpdateComboWindow()
     {
-        // ── フェーズ1: RTI ステートに入ったらウィンドウを即開く ──
-        // （タイマー遅延より正確：アニメーション遷移タイミングに完全同期）
+        if (comboMode == ComboMode.Auto) return;
+
+        // ── フェーズ1: RTI ステート検出でウィンドウを開く（Animation Event の取りこぼし対策）──
         if (!inComboWindow && comboIndex > 0)
         {
             var info = anim.GetCurrentAnimatorStateInfo(0);
@@ -279,41 +283,51 @@ public class PlayerAnimator : MonoBehaviour
                       || info.shortNameHash == StateAttack3RTI;
             if (inRTI)
             {
-                inComboWindow         = true;
-                comboWindowTimer      = comboWindowDuration;
-                comboWindowDelayTimer = 0f;
+                OpenComboWindow();
                 return;
             }
         }
 
-        // ── フェーズ2: 遅延タイマー（RTI が存在しない場合のフォールバック）──
-        if (comboWindowDelayTimer > 0f)
+        // ── フェーズ2: フォールバックリセット（RTI にも入らなかった場合）──
+        if (!inComboWindow && comboResetTimer > 0f)
         {
-            comboWindowDelayTimer -= Time.deltaTime;
-            if (comboWindowDelayTimer <= 0f)
-            {
-                inComboWindow    = true;
-                comboWindowTimer = comboWindowDuration;
-            }
+            comboResetTimer -= Time.deltaTime;
+            if (comboResetTimer <= 0f)
+                ResetCombo();
             return;
         }
 
         // ── フェーズ3: ウィンドウのタイムアウト ──
         if (!inComboWindow) return;
-        if (comboMode == ComboMode.Auto) return;
-
         comboWindowTimer -= Time.deltaTime;
         if (comboWindowTimer <= 0f)
             ResetCombo();
     }
 
     /// <summary>
-    /// アニメーションイベントから呼ぶ：コンボウィンドウを開く
+    /// コンボウィンドウを開き、pendingAttack があれば即消費する。
+    /// RTI ステート検出・Animation Event の両方から呼ばれる。
+    /// </summary>
+    private void OpenComboWindow()
+    {
+        inComboWindow    = true;
+        comboWindowTimer = comboWindowDuration;
+        comboResetTimer  = 0f;
+
+        if (pendingAttack)
+        {
+            pendingAttack = false;
+            AdvanceCombo();
+        }
+    }
+
+    /// <summary>
+    /// アニメーションイベントから呼ぶ：コンボウィンドウを開く。
+    /// ウィンドウ外で押されていた入力（pendingAttack）があれば即消費して次コンボへ進む。
     /// </summary>
     public void OnComboWindowOpen()
     {
-        inComboWindow   = true;
-        comboWindowTimer = comboWindowDuration;
+        OpenComboWindow();
     }
 
     /// <summary>
@@ -321,6 +335,7 @@ public class PlayerAnimator : MonoBehaviour
     /// </summary>
     public void OnComboEnd()
     {
+        pendingAttack = false;
         ResetCombo();
     }
 
@@ -356,10 +371,11 @@ public class PlayerAnimator : MonoBehaviour
 
     private void ResetCombo()
     {
-        comboIndex            = 0;
-        inComboWindow         = false;
-        comboWindowTimer      = 0f;
-        comboWindowDelayTimer = 0f;
+        comboIndex       = 0;
+        inComboWindow    = false;
+        comboWindowTimer = 0f;
+        comboResetTimer  = 0f;
+        pendingAttack    = false;
         if (anim != null)
             anim.SetInteger(ComboIndexHash, 0);
     }
