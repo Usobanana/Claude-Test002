@@ -37,10 +37,12 @@ public class SkillSystem : MonoBehaviour
     public event Action             OnChainUnlocked;
 
     private CharacterEntity entity;
+    private PlayerAnimator  playerAnimator;
 
     void Awake()
     {
-        entity = GetComponent<CharacterEntity>();
+        entity         = GetComponent<CharacterEntity>();
+        playerAnimator = GetComponent<PlayerAnimator>();
     }
 
     void Update()
@@ -79,16 +81,16 @@ public class SkillSystem : MonoBehaviour
             case 3: Skill3Remaining = skill3Cooldown; break;
         }
         OnSkillUsed?.Invoke(slot, GetCooldown(slot));
+        playerAnimator?.TriggerSkill(slot);
         Debug.Log($"[SkillSystem] Skill{slot} 使用");
-        // TODO: 各スキルのエフェクト・ダメージ処理を実装
     }
 
     private void UseUlt()
     {
         UltRemaining = ultCooldown;
         OnSkillUsed?.Invoke(4, ultCooldown);
+        playerAnimator?.TriggerSkill(4);
         Debug.Log("[SkillSystem] ウルトスキル 使用");
-        // TODO: ウルトのエフェクト・ダメージ処理を実装
     }
 
     private void UseChain()
@@ -97,7 +99,6 @@ public class SkillSystem : MonoBehaviour
         chainUnlocked  = false;
         OnSkillUsed?.Invoke(5, chainCooldown);
         Debug.Log("[SkillSystem] 連携スキル 使用");
-        // TODO: 連携スキルのエフェクト・ダメージ処理を実装
     }
 
     /// <summary>

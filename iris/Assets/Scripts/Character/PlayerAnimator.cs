@@ -19,7 +19,9 @@ public class PlayerAnimator : MonoBehaviour
 
     [Header("コンボ設定")]
     [Tooltip("Input モード：コンボウィンドウ持続時間（秒）")]
-    [SerializeField] private float comboWindowDuration = 1.0f;
+    [SerializeField] private float comboWindowDuration = 0.8f;
+    [Tooltip("攻撃開始からコンボ受付を開始するまでの遅延（秒）。LightCombo01Aは25f中15fがFollowThrough開始 = 約0.5s。")]
+    [SerializeField] private float comboWindowOpenDelay = 0.5f;
 
     // ─────────────────────────────────────────
     // 内部状態
@@ -31,9 +33,10 @@ public class PlayerAnimator : MonoBehaviour
     private AutoAttackSystem  autoAttack;
 
     // コンボ
-    private int   comboIndex      = 0;   // 0=待機, 1=1打目, 2=2打目, 3=3打目
-    private float comboWindowTimer = 0f;
-    private bool  inComboWindow   = false;
+    private int   comboIndex          = 0;   // 0=待機, 1=1打目, 2=2打目, 3=3打目
+    private float comboWindowTimer    = 0f;
+    private bool  inComboWindow       = false;
+    private float comboWindowDelayTimer = 0f; // 攻撃開始→受付開始までの遅延タイマー
 
     // アニメーターハッシュ
     private static readonly int SpeedHash      = Animator.StringToHash("Speed");
@@ -41,6 +44,18 @@ public class PlayerAnimator : MonoBehaviour
     private static readonly int ComboIndexHash = Animator.StringToHash("ComboIndex");
     private static readonly int DodgeHash      = Animator.StringToHash("Dodge");
     private static readonly int IsDeadHash     = Animator.StringToHash("IsDead");
+
+    // ベースレイヤーのステートハッシュ（ロコモーション判定用）
+    private static readonly int StateIdle      = Animator.StringToHash("Idle");
+    private static readonly int StateRun       = Animator.StringToHash("Run");
+    private static readonly int StateAttack1RTI = Animator.StringToHash("Attack1_RTI");
+    private static readonly int StateAttack2RTI = Animator.StringToHash("Attack2_RTI");
+    private static readonly int StateAttack3RTI = Animator.StringToHash("Attack3_RTI");
+
+    // SwordArm / SwordHand レイヤーインデックス（-1 = 存在しない）
+    private int  swordArmLayerIdx  = -1;
+    private int  swordHandLayerIdx = -1;
+    private bool swordLayersActive = true;
 
     private bool wasDodging;
 
@@ -54,6 +69,30 @@ public class PlayerAnimator : MonoBehaviour
         set => comboMode = value;
     }
 
+    /// <summary>
+    /// 攻撃・スキル・回避・被弾・死亡アニメーション中は true。
+    /// PlayerController が移動速度を減衰させるために参照する。
+    /// </summary>
+    public bool IsActing
+    {
+        get
+        {
+            if (anim == null) return false;
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            bool currentIsLocomotion = info.shortNameHash == StateIdle
+                                    || info.shortNameHash == StateRun;
+            // トランジション中：遷移先が非ロコモーションなら即 Acting 扱い
+            if (anim.IsInTransition(0))
+            {
+                var next = anim.GetNextAnimatorStateInfo(0);
+                bool nextIsLocomotion = next.shortNameHash == StateIdle
+                                     || next.shortNameHash == StateRun;
+                return !currentIsLocomotion || !nextIsLocomotion;
+            }
+            return !currentIsLocomotion;
+        }
+    }
+
     // ─────────────────────────────────────────
     // Unity ライフサイクル
     // ─────────────────────────────────────────
@@ -64,6 +103,12 @@ public class PlayerAnimator : MonoBehaviour
         controller = GetComponent<PlayerController>();
         entity     = GetComponent<CharacterEntity>();
         autoAttack = GetComponent<AutoAttackSystem>();
+
+        if (anim != null)
+        {
+            swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
+            swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
+        }
     }
 
     void Start()
@@ -88,9 +133,14 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (anim == null) return;
 
-        // 移動速度
-        Vector2 input = InputHandler.Instance != null ? InputHandler.Instance.MoveInput : Vector2.zero;
-        anim.SetFloat(SpeedHash, input.magnitude);
+        // 移動速度（ダッシュ中は Speed を 2 にして Run アニメーションを維持）
+        Vector2 input    = InputHandler.Instance != null ? InputHandler.Instance.MoveInput : Vector2.zero;
+        bool    dashing  = controller.IsDashing;
+        float   speed    = dashing ? Mathf.Max(input.magnitude, 1f) : input.magnitude;
+        anim.SetFloat(SpeedHash, speed);
+
+        // SwordArm/SwordHand レイヤー: ロコモーション中のみ有効、戦闘中は無効
+        UpdateSwordLayers();
 
         // 回避（開始時に1回だけ）
         bool isDodging = controller.IsDodging;
@@ -173,9 +223,11 @@ public class PlayerAnimator : MonoBehaviour
         anim.SetTrigger(AttackHash);
         AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
 
-        // コンボウィンドウを即座に開く（アニメーションイベント不要）
-        inComboWindow   = true;
-        comboWindowTimer = comboWindowDuration;
+        // コンボウィンドウは即座には開かない。
+        // comboWindowOpenDelay 秒後に開くことで、振りかぶり中の誤入力を防ぐ。
+        inComboWindow         = false;
+        comboWindowTimer      = 0f;
+        comboWindowDelayTimer = comboWindowOpenDelay;
 
         // Input モード時はダメージを AutoAttackSystem に委譲
         if (comboMode == ComboMode.Input)
@@ -184,15 +236,42 @@ public class PlayerAnimator : MonoBehaviour
 
     private void UpdateComboWindow()
     {
+        // ── フェーズ1: RTI ステートに入ったらウィンドウを即開く ──
+        // （タイマー遅延より正確：アニメーション遷移タイミングに完全同期）
+        if (!inComboWindow && comboIndex > 0)
+        {
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            bool inRTI = info.shortNameHash == StateAttack1RTI
+                      || info.shortNameHash == StateAttack2RTI
+                      || info.shortNameHash == StateAttack3RTI;
+            if (inRTI)
+            {
+                inComboWindow         = true;
+                comboWindowTimer      = comboWindowDuration;
+                comboWindowDelayTimer = 0f;
+                return;
+            }
+        }
+
+        // ── フェーズ2: 遅延タイマー（RTI が存在しない場合のフォールバック）──
+        if (comboWindowDelayTimer > 0f)
+        {
+            comboWindowDelayTimer -= Time.deltaTime;
+            if (comboWindowDelayTimer <= 0f)
+            {
+                inComboWindow    = true;
+                comboWindowTimer = comboWindowDuration;
+            }
+            return;
+        }
+
+        // ── フェーズ3: ウィンドウのタイムアウト ──
         if (!inComboWindow) return;
-        // Auto モードはタイマーによるリセット不要（attackInterval がタイミングを制御）
         if (comboMode == ComboMode.Auto) return;
 
         comboWindowTimer -= Time.deltaTime;
         if (comboWindowTimer <= 0f)
-        {
             ResetCombo();
-        }
     }
 
     /// <summary>
@@ -212,11 +291,42 @@ public class PlayerAnimator : MonoBehaviour
         ResetCombo();
     }
 
+    /// <summary>
+    /// ベースレイヤーが Idle または Run の場合のみ SwordArm/SwordHand を有効にする。
+    /// 戦闘アニメーション（Attack/Dodge/Hit/Death 等）は全身アニメーションを使うため無効にする。
+    /// トランジション中は current/next 両方がロコモーションの場合のみ有効にする。
+    /// （Idle→Attack のブレンド中に Idle_Sword が混入するのを防ぐ）
+    /// </summary>
+    private void UpdateSwordLayers()
+    {
+        if (swordArmLayerIdx < 0 && swordHandLayerIdx < 0) return;
+
+        var  info                = anim.GetCurrentAnimatorStateInfo(0);
+        bool currentIsLocomotion = info.shortNameHash == StateIdle || info.shortNameHash == StateRun;
+
+        bool inLocomtion = currentIsLocomotion;
+
+        // トランジション中は next ステートも確認：どちらかが非ロコモーションなら即無効
+        if (anim.IsInTransition(0))
+        {
+            var  nextInfo          = anim.GetNextAnimatorStateInfo(0);
+            bool nextIsLocomotion  = nextInfo.shortNameHash == StateIdle || nextInfo.shortNameHash == StateRun;
+            inLocomtion = currentIsLocomotion && nextIsLocomotion;
+        }
+
+        if (inLocomtion == swordLayersActive) return; // 変化なし
+        swordLayersActive = inLocomtion;
+
+        if (swordArmLayerIdx  >= 0) anim.SetLayerWeight(swordArmLayerIdx,  inLocomtion ? 0.7f : 0f);
+        if (swordHandLayerIdx >= 0) anim.SetLayerWeight(swordHandLayerIdx, inLocomtion ? 1.0f : 0f);
+    }
+
     private void ResetCombo()
     {
-        comboIndex       = 0;
-        inComboWindow    = false;
-        comboWindowTimer  = 0f;
+        comboIndex            = 0;
+        inComboWindow         = false;
+        comboWindowTimer      = 0f;
+        comboWindowDelayTimer = 0f;
         if (anim != null)
             anim.SetInteger(ComboIndexHash, 0);
     }

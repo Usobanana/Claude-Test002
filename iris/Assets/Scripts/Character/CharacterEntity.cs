@@ -67,17 +67,31 @@ public class CharacterEntity : MonoBehaviour
 
     // --- スタミナ ---
 
+    // スタミナ回復を抑制するフレーム数（ConsumeStamina 呼び出し時にセット）
+    private int suppressRegenFrames = 0;
+
     public bool ConsumeStamina(float amount)
     {
-        if (CurrentStamina < amount) return false;
+        if (data == null || CurrentStamina < amount) return false;
         CurrentStamina -= amount;
+        suppressRegenFrames = 2; // 消費した直後のフレームは回復しない
         OnStaminaChanged?.Invoke(CurrentStamina, data.baseStats.maxStamina);
         return true;
+    }
+
+    /// <summary>
+    /// ダッシュなど継続消費中はスタミナ回復を止める。
+    /// PlayerController などから毎フレーム呼ぶ。
+    /// </summary>
+    public void SuppressStaminaRegen()
+    {
+        suppressRegenFrames = 2;
     }
 
     private void RegenerateStamina()
     {
         if (data == null) return;
+        if (suppressRegenFrames > 0) { suppressRegenFrames--; return; }
         if (CurrentStamina >= data.baseStats.maxStamina) return;
         CurrentStamina = Mathf.Min(
             data.baseStats.maxStamina,

@@ -36,7 +36,9 @@ public static class PlayerAppearanceSetupTool
 
         var so = new SerializedObject(appearance);
         so.FindProperty("weaponPrefab").objectReferenceValue    = swordPrefab;
-        so.FindProperty("weaponBoneName").stringValue           = "Hand_R";
+        // Prop_R_Socket: Synty/Tools/Animation/Setup Prop Bones 実行後に作成されるボーン
+        // 未実行の場合は PlayerAppearance.AttachWeapon() が Hand_R へ自動フォールバックする
+        so.FindProperty("weaponBoneName").stringValue           = "Prop_R_Socket";
         so.FindProperty("weaponPositionOffset").vector3Value    = Vector3.zero;
         so.FindProperty("weaponRotationOffset").vector3Value    = Vector3.zero;
         so.ApplyModifiedProperties();
@@ -45,7 +47,7 @@ public static class PlayerAppearanceSetupTool
 
         EditorUtility.SetDirty(player);
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        Debug.Log("[PlayerAppearance] 剣のセットアップ完了");
+        Debug.Log("[PlayerAppearance] 剣のセットアップ完了。Prop_R_Socket が見つからない場合は Synty/Tools/Animation/Setup Prop Bones を実行してください。");
     }
 
     // ─────────────────────────────────────────

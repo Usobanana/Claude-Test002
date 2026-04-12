@@ -9,13 +9,19 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [Header("移動")]
-    [SerializeField] private float moveSpeed   = 5f;
-    [SerializeField] private float rotateSpeed = 720f;  // 度/秒
+    [SerializeField] private float moveSpeed              = 5f;
+    [SerializeField] private float rotateSpeed            = 720f;  // 度/秒
+    [Tooltip("攻撃・スキル・回避中の移動速度倍率（0=完全停止, 0.2=20%）")]
+    [SerializeField] [Range(0f, 1f)] private float actingMoveMultiplier = 0.2f;
+
+    [Header("ダッシュ")]
+    [SerializeField] private float dashSpeed        = 9f;
+    [SerializeField] private float dashStaminaCost  = 10f;  // /秒
 
     [Header("回避")]
-    [SerializeField] private float dodgeDistance     = 4f;
-    [SerializeField] private float dodgeDuration      = 0.2f;
-    [SerializeField] private float dodgeStaminaCost   = 25f;
+    [SerializeField] private float dodgeDistance    = 4f;
+    [SerializeField] private float dodgeDuration    = 0.2f;
+    [SerializeField] private float dodgeStaminaCost = 25f;
 
     [Header("重力")]
     [SerializeField] private float gravity = -20f;
@@ -23,20 +29,24 @@ public class PlayerController : MonoBehaviour
     // --- コンポーネント参照 ---
     private CharacterController cc;
     private CharacterEntity     entity;
+    private PlayerAnimator      playerAnimator;
 
     // --- 状態 ---
     private Vector3 velocity;          // Y方向の重力蓄積
     private bool    isDodging;
     private float   dodgeTimer;
     private Vector3 dodgeDirection;
+    private bool    isDashing;
 
     // --- 外部参照 ---
     public Vector3 FacingDirection { get; private set; } = Vector3.forward;
+    public bool    IsDashing => isDashing;
 
     void Awake()
     {
-        cc     = GetComponent<CharacterController>();
-        entity = GetComponent<CharacterEntity>();
+        cc             = GetComponent<CharacterController>();
+        entity         = GetComponent<CharacterEntity>();
+        playerAnimator = GetComponent<PlayerAnimator>();
     }
 
     void Update()
@@ -53,6 +63,7 @@ public class PlayerController : MonoBehaviour
 
         HandleMovement();
         HandleDodge();
+        HandleDash();
         ApplyGravity();
     }
 
@@ -72,7 +83,41 @@ public class PlayerController : MonoBehaviour
             RotateTowards(move);
         }
 
-        cc.Move(move * moveSpeed * Time.deltaTime);
+        // ダッシュ中は dashSpeed を使用（HandleDash で移動処理するため通常移動はスキップ）
+        if (!isDashing)
+        {
+            float multiplier = (playerAnimator != null && playerAnimator.IsActing)
+                ? actingMoveMultiplier
+                : 1f;
+            cc.Move(move * moveSpeed * multiplier * Time.deltaTime);
+        }
+    }
+
+    // --- ダッシュ ---
+
+    private void HandleDash()
+    {
+        if (InputHandler.Instance == null) return;
+
+        bool dashInput = InputHandler.Instance.DashInput;
+        isDashing = dashInput;
+
+        if (!isDashing) return;
+
+        Vector2 input = InputHandler.Instance.MoveInput;
+        Vector3 move  = input.sqrMagnitude > 0.01f
+            ? new Vector3(input.x, 0f, input.y).normalized
+            : transform.forward;
+
+        // スタミナ消費（秒あたり）。回復も止める。スタミナ切れでダッシュ停止
+        entity.SuppressStaminaRegen();
+        if (!entity.ConsumeStamina(dashStaminaCost * Time.deltaTime))
+        {
+            isDashing = false;
+            return;
+        }
+
+        cc.Move(move * dashSpeed * Time.deltaTime);
     }
 
     private void RotateTowards(Vector3 direction)

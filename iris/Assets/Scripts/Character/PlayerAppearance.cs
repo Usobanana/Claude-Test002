@@ -21,8 +21,8 @@ public class PlayerAppearance : MonoBehaviour
     [Header("武器設定")]
     [Tooltip("装備させる武器の Prefab")]
     [SerializeField] public GameObject weaponPrefab;
-    [Tooltip("武器を装着するボーン名")]
-    [SerializeField] public string weaponBoneName = "Hand_R";
+    [Tooltip("武器を装着するボーン名 (Prop Bone Binder 実行後は Prop_R_Socket を使用)")]
+    [SerializeField] public string weaponBoneName = "Prop_R_Socket";
     [Tooltip("ボーンからの位置オフセット")]
     [SerializeField] public Vector3 weaponPositionOffset = Vector3.zero;
     [Tooltip("ボーンからの回転オフセット（オイラー角）")]
@@ -50,8 +50,17 @@ public class PlayerAppearance : MonoBehaviour
         var bone = FindBone(weaponBoneName);
         if (bone == null)
         {
-            Debug.LogWarning($"[PlayerAppearance] ボーン '{weaponBoneName}' が見つかりません");
-            return;
+            // Prop_R_Socket が見つからない場合は Hand_R へフォールバック
+            if (weaponBoneName != "Hand_R")
+            {
+                Debug.LogWarning($"[PlayerAppearance] ボーン '{weaponBoneName}' が見つかりません。'Hand_R' にフォールバックします。Prop Bone を使うには Synty/Tools/Animation/Setup Prop Bones を先に実行してください。");
+                bone = FindBone("Hand_R");
+            }
+            if (bone == null)
+            {
+                Debug.LogWarning($"[PlayerAppearance] ボーン 'Hand_R' も見つかりません");
+                return;
+            }
         }
 
         var weapon = Instantiate(weaponPrefab, bone);
