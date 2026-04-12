@@ -1,0 +1,108 @@
+name: Unity Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GitHub Pages デプロイに必要なパーミッション
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # ─────────────────────────────────────────────
+  # WebGL ビルド
+  # ─────────────────────────────────────────────
+  build-webgl:
+    name: Build WebGL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: iris/Library
+          key: Library-WebGL-${{ hashFiles('iris/Assets/**', 'iris/Packages/**', 'iris/ProjectSettings/**') }}
+          restore-keys: |
+            Library-WebGL-
+            Library-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE:  ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL:    ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion:   6000.4.1f1
+          targetPlatform: WebGL
+          projectPath:    iris
+          buildsPath:     build
+          buildName:      webgl
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/WebGL/webgl
+
+  # ─────────────────────────────────────────────
+  # Windows ビルド
+  # ─────────────────────────────────────────────
+  build-windows:
+    name: Build Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: iris/Library
+          key: Library-Windows-${{ hashFiles('iris/Assets/**', 'iris/Packages/**', 'iris/ProjectSettings/**') }}
+          restore-keys: |
+            Library-Windows-
+            Library-
+
+      - name: Build Windows
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE:  ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL:    ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion:   6000.4.1f1
+          targetPlatform: StandaloneWindows64
+          projectPath:    iris
+          buildsPath:     build
+          buildName:      windows
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-Windows
+          path: build/StandaloneWindows64/windows
+          retention-days: 14
+
+  # ─────────────────────────────────────────────
+  # GitHub Pages デプロイ（WebGL ビルド完了後）
+  # ─────────────────────────────────────────────
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    needs: build-webgl
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
