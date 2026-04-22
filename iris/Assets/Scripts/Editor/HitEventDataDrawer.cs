@@ -22,20 +22,17 @@ public class HitEventDataDrawer : PropertyDrawer
 
         var shapeType = (HitShapeType)property.FindPropertyRelative("shapeType").enumValueIndex;
 
-        int rows = 0;
-        rows += 2;                   // hitStartFrame, hitEndFrame
-        rows += 1;                   // shapeType
-        rows += ShapeRows(shapeType);
-        rows += 1;                   // damageRate
-        rows += 4;                   // hitStop x2, shake x2
-        rows += 2;                   // knockback x2
-        rows += 3;                   // swingSE, swingSEFrame, hitSE
+        int dataRows      = 2 + 1 + ShapeRows(shapeType) + 1 + 4 + 2 + 3;
+        int sectionLabels = 5;  // タイミング／形状／ダメージ／打感・ノックバック／SE
+        int sectionGaps   = 5;
 
-        int sectionGaps = 5;         // タイミング／形状／ダメージ／打感／SE の間
+        // circleOffset は Vector3 なので2行分
+        float extra = shapeType == HitShapeType.Circle ? (LineH + Spacing) : 0f;
 
-        return LineH + Spacing                          // header
-             + rows * (LineH + Spacing)
-             + sectionGaps * SectionGap;
+        return (LineH + Spacing)                                    // ヘッダー
+             + (dataRows + sectionLabels) * (LineH + Spacing)
+             + sectionGaps * SectionGap
+             + extra;
     }
 
     // ─── 描画 ────────────────────────────────────
