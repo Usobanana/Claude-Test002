@@ -206,9 +206,14 @@ public class PlayerAnimatorEditor : Editor
         if (idleState != null)
             EnsureExitTransition(comboState, idleState);
 
-        var so   = new SerializedObject(playerAnimator);
-        var prop = so.FindProperty("comboPlaceholderClip");
-        prop.objectReferenceValue = placeholder;
+        // WeaponArm / WeaponHand レイヤーのプレースホルダーを自動取得
+        var weaponArmClip  = GetLayerMotionClip(controller, "WeaponArm");
+        var weaponHandClip = GetLayerMotionClip(controller, "WeaponHand");
+
+        var so = new SerializedObject(playerAnimator);
+        so.FindProperty("comboPlaceholderClip").objectReferenceValue = placeholder;
+        if (weaponArmClip  != null) so.FindProperty("weaponArmPlaceholderClip").objectReferenceValue  = weaponArmClip;
+        if (weaponHandClip != null) so.FindProperty("weaponHandPlaceholderClip").objectReferenceValue = weaponHandClip;
         so.ApplyModifiedProperties();
 
         EditorUtility.SetDirty(controller);
@@ -217,6 +222,8 @@ public class PlayerAnimatorEditor : Editor
         string message = "セットアップが完了しました。\n\n"
                        + $"・ComboAttack ステート：作成済み\n"
                        + $"・プレースホルダークリップ：{placeholder.name}\n"
+                       + $"・WeaponArm クリップ：{(weaponArmClip  != null ? weaponArmClip.name  : "未検出")}\n"
+                       + $"・WeaponHand クリップ：{(weaponHandClip != null ? weaponHandClip.name : "未検出")}\n"
                        + $"・Locomotion タグ付与：{taggedCount} ステート";
         if (taggedCount == 0)
             message += "\n\n⚠ Idle・Run ステートが見つかりませんでした。\n  Animator で手動でタグを設定してください。";
@@ -228,6 +235,21 @@ public class PlayerAnimatorEditor : Editor
     // ─────────────────────────────────────────
     // ユーティリティ
     // ─────────────────────────────────────────
+
+    /// <summary>指定レイヤーの最初のステートに割り当てられた AnimationClip を返す。</summary>
+    private static AnimationClip GetLayerMotionClip(AnimatorController controller, string layerName)
+    {
+        foreach (var layer in controller.layers)
+        {
+            if (layer.name != layerName) continue;
+            foreach (var stateRef in layer.stateMachine.states)
+            {
+                if (stateRef.state.motion is AnimationClip clip)
+                    return clip;
+            }
+        }
+        return null;
+    }
 
     private static AnimatorController GetBaseAnimatorController(RuntimeAnimatorController rtc)
     {
