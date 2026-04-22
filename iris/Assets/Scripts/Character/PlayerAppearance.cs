@@ -62,6 +62,10 @@ public class PlayerAppearance : MonoBehaviour
 
         if (data.comboData != null)
             GetComponent<PlayerAnimator>()?.SetComboData(data.comboData);
+
+        var pa = GetComponent<PlayerAnimator>();
+        if (pa != null && (data.weaponArmClip != null || data.weaponHandClip != null))
+            pa.SetWeaponPose(data.weaponArmClip, data.weaponHandClip);
     }
 
     /// <summary>

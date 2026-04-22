@@ -24,6 +24,12 @@ public class CharacterData : ScriptableObject
     [Tooltip("通常攻撃のコンボ定義。未設定の場合は PlayerAnimator のデフォルトを使用")]
     public ComboData comboData;
 
+    [Header("武器構えポーズ")]
+    [Tooltip("Locomotion中に WeaponArm レイヤーで使うアームポーズクリップ（未設定なら差し替えなし）")]
+    public AnimationClip weaponArmClip;
+    [Tooltip("Locomotion中に WeaponHand レイヤーで使うハンドポーズクリップ（未設定なら差し替えなし）")]
+    public AnimationClip weaponHandClip;
+
     [Header("武器種")]
     public WeaponType weaponType;
 

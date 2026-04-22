@@ -28,6 +28,11 @@ public class PlayerAnimator : MonoBehaviour
     [Tooltip("AnimatorController の ComboAttack ステートに使うプレースホルダークリップ。「Animator をセットアップ」ボタンで自動設定される")]
     [SerializeField] private AnimationClip comboPlaceholderClip;
 
+    [Tooltip("WeaponArm レイヤーのデフォルトクリップ（OverrideController のキーとして使用）")]
+    [SerializeField] private AnimationClip weaponArmPlaceholderClip;
+    [Tooltip("WeaponHand レイヤーのデフォルトクリップ（OverrideController のキーとして使用）")]
+    [SerializeField] private AnimationClip weaponHandPlaceholderClip;
+
     // ─────────────────────────────────────────
     // コンポーネント参照
     // ─────────────────────────────────────────
@@ -64,12 +69,12 @@ public class PlayerAnimator : MonoBehaviour
     private const string ComboAttackName = "ComboAttack";
 
     // ─────────────────────────────────────────
-    // SwordArm / SwordHand レイヤー
+    // WeaponArm / WeaponHand レイヤー
     // ─────────────────────────────────────────
 
-    private int  swordArmLayerIdx  = -1;
-    private int  swordHandLayerIdx = -1;
-    private bool swordLayersActive = true;
+    private int  weaponArmLayerIdx  = -1;
+    private int  weaponHandLayerIdx = -1;
+    private bool weaponLayersActive = true;
 
     private bool wasDodging;
 
@@ -139,7 +144,7 @@ public class PlayerAnimator : MonoBehaviour
         if (anim == null) return;
 
         UpdateSpeed();
-        UpdateSwordLayers();
+        UpdateWeaponLayers();
         UpdateDodgeAnim();
 
         if (comboMode == ComboMode.Input && InputHandler.Instance != null)
@@ -163,6 +168,17 @@ public class PlayerAnimator : MonoBehaviour
     {
         comboData = data;
         ResetCombo();
+    }
+
+    /// <summary>
+    /// WeaponArm/WeaponHand レイヤーのポーズクリップをキャラクターに合わせて差し替える。
+    /// PlayerAppearance.ApplyCharacter() から呼ぶ。null を渡したレイヤーは変更しない。
+    /// </summary>
+    public void SetWeaponPose(AnimationClip armClip, AnimationClip handClip)
+    {
+        if (overrideController == null) return;
+        if (armClip  != null && weaponArmPlaceholderClip  != null) overrideController[weaponArmPlaceholderClip]  = armClip;
+        if (handClip != null && weaponHandPlaceholderClip != null) overrideController[weaponHandPlaceholderClip] = handClip;
     }
 
     /// <summary>
@@ -240,14 +256,14 @@ public class PlayerAnimator : MonoBehaviour
         if (anim == null)
         {
             overrideController = null;
-            swordArmLayerIdx   = -1;
-            swordHandLayerIdx  = -1;
+            weaponArmLayerIdx  = -1;
+            weaponHandLayerIdx = -1;
             return;
         }
 
         anim.applyRootMotion = false;
-        swordArmLayerIdx     = anim.GetLayerIndex("SwordArm");
-        swordHandLayerIdx    = anim.GetLayerIndex("SwordHand");
+        weaponArmLayerIdx    = anim.GetLayerIndex("WeaponArm");
+        weaponHandLayerIdx   = anim.GetLayerIndex("WeaponHand");
 
         // シーン保存等で runtimeAnimatorController が既に OverrideController になっている場合、
         // 元の AnimatorController まで遡ってから新しい OverrideController を作成する
@@ -270,7 +286,11 @@ public class PlayerAnimator : MonoBehaviour
 
     private void AdvanceCombo()
     {
-        if (comboData == null || comboData.StepCount == 0) return;
+        if (comboData == null || comboData.StepCount == 0)
+        {
+            Debug.LogWarning($"[PlayerAnimator] AdvanceCombo: comboData={comboData}, StepCount={comboData?.StepCount}");
+            return;
+        }
 
         int nextStep = currentStepIndex < 0 ? 0 : currentStepIndex + 1;
 
@@ -383,12 +403,12 @@ public class PlayerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// SwordArm/SwordHand レイヤーは Locomotion 中のみ有効にする。
+    /// WeaponArm/WeaponHand レイヤーは Locomotion 中のみ有効にする。
     /// 戦闘アニメーション中は全身アニメーションを優先するため無効にする。
     /// </summary>
-    private void UpdateSwordLayers()
+    private void UpdateWeaponLayers()
     {
-        if (swordArmLayerIdx < 0 && swordHandLayerIdx < 0) return;
+        if (weaponArmLayerIdx < 0 && weaponHandLayerIdx < 0) return;
 
         var  info         = anim.GetCurrentAnimatorStateInfo(0);
         bool inLocomotion = info.IsTag(LocomotionTag);
@@ -399,11 +419,11 @@ public class PlayerAnimator : MonoBehaviour
             inLocomotion = inLocomotion && next.IsTag(LocomotionTag);
         }
 
-        if (inLocomotion == swordLayersActive) return;
-        swordLayersActive = inLocomotion;
+        if (inLocomotion == weaponLayersActive) return;
+        weaponLayersActive = inLocomotion;
 
-        if (swordArmLayerIdx  >= 0) anim.SetLayerWeight(swordArmLayerIdx,  inLocomotion ? 0.7f : 0f);
-        if (swordHandLayerIdx >= 0) anim.SetLayerWeight(swordHandLayerIdx, inLocomotion ? 1.0f : 0f);
+        if (weaponArmLayerIdx  >= 0) anim.SetLayerWeight(weaponArmLayerIdx,  inLocomotion ? 0.7f : 0f);
+        if (weaponHandLayerIdx >= 0) anim.SetLayerWeight(weaponHandLayerIdx, inLocomotion ? 1.0f : 0f);
     }
 
     // ─────────────────────────────────────────
