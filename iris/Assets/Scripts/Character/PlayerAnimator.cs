@@ -354,13 +354,15 @@ public class PlayerAnimator : MonoBehaviour
             ResetCombo();
             return;
         }
+        // attackTriggered は UpdateDetection のスキップ判定に使うため先に退避してからクリア
+        bool justTriggered = attackTriggered;
         attackTriggered = false;
 
         float t    = info.normalizedTime % 1f;
         var   step = comboData.steps[currentStepIndex];
 
-        // 遷移中は古い normalizedTime で新ステップの判定が誤作動するためスキップ
-        if (!anim.IsInTransition(0))
+        // SetTrigger した同フレーム・遷移中は古い normalizedTime で誤作動するためスキップ
+        if (!justTriggered && !anim.IsInTransition(0))
             hitDetector?.UpdateDetection(info.normalizedTime);
 
         bool shouldBeOpen = t >= step.WindowStartNormalized && t < step.WindowEndNormalized;
