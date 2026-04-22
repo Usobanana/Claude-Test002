@@ -25,8 +25,8 @@ public class PlayerAnimator : MonoBehaviour
     [Tooltip("このキャラクターのコンボ設定。CharacterData.ApplyCharacter() で上書きされる")]
     [SerializeField] private ComboData comboData;
 
-    [Tooltip("AnimatorController 内の攻撃ステートが参照するプレースホルダークリップ名")]
-    [SerializeField] private string comboPlaceholderClipName = "AttackBase";
+    [Tooltip("AnimatorController の ComboAttack ステートに使うプレースホルダークリップ。「Animator をセットアップ」ボタンで自動設定される")]
+    [SerializeField] private AnimationClip comboPlaceholderClip;
 
     // ─────────────────────────────────────────
     // コンポーネント参照
@@ -271,7 +271,11 @@ public class PlayerAnimator : MonoBehaviour
 
     private void PlayComboStep(int stepIndex)
     {
-        if (overrideController == null) return;
+        if (overrideController == null || comboPlaceholderClip == null)
+        {
+            Debug.LogWarning("[PlayerAnimator] overrideController または comboPlaceholderClip が未設定です。Inspector の「Animator をセットアップ」を実行してください");
+            return;
+        }
 
         var step = comboData.steps[stepIndex];
         if (step?.clip == null)
@@ -284,8 +288,7 @@ public class PlayerAnimator : MonoBehaviour
         windowOpen       = false;
         pendingAttack    = false;
 
-        // クリップをスワップしてからトリガーを発火
-        overrideController[comboPlaceholderClipName] = step.clip;
+        overrideController[comboPlaceholderClip] = step.clip;
         anim.SetTrigger(AttackHash);
 
         AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
