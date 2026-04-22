@@ -41,6 +41,7 @@ public class HitDetector : MonoBehaviour
         hitSets         = new HashSet<GameObject>[count];
         for (int i = 0; i < count; i++)
             hitSets[i] = new HashSet<GameObject>();
+
     }
 
     public void StopStep()

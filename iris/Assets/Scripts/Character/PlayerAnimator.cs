@@ -49,9 +49,10 @@ public class PlayerAnimator : MonoBehaviour
     // コンボ状態
     // ─────────────────────────────────────────
 
-    private int  currentStepIndex = -1;   // -1 = 非攻撃中
-    private bool windowOpen       = false;
-    private bool pendingAttack    = false;
+    private int  currentStepIndex  = -1;   // -1 = 非攻撃中
+    private bool windowOpen        = false;
+    private bool pendingAttack     = false;
+    private bool attackTriggered   = false; // SetTrigger した直後の1フレームをスキップ
 
     // ─────────────────────────────────────────
     // Animator パラメータハッシュ
@@ -327,6 +328,7 @@ public class PlayerAnimator : MonoBehaviour
 
         overrideController[comboPlaceholderClip] = step.clip;
         anim.SetTrigger(AttackHash);
+        attackTriggered = true;   // 次フレームまで UpdateComboState のリセット判定を保留
         hitDetector?.StartStep(step);
 
         if (comboMode == ComboMode.Input)
@@ -342,12 +344,17 @@ public class PlayerAnimator : MonoBehaviour
         // ComboAttack ステートから離れた（アニメーション完了）
         if (!info.IsName(ComboAttackName))
         {
-            // Idle→ComboAttack 遷移中は次のステートが ComboAttack なのでリセットしない
+            // SetTrigger 直後の1フレームは Animator がまだ Idle のためスキップ
+            if (attackTriggered) { attackTriggered = false; return; }
+
+            // 遷移中で次のステートが ComboAttack ならスキップ
             if (anim.IsInTransition(0) && anim.GetNextAnimatorStateInfo(0).IsName(ComboAttackName))
                 return;
+
             ResetCombo();
             return;
         }
+        attackTriggered = false;
 
         float t    = info.normalizedTime % 1f;
         var   step = comboData.steps[currentStepIndex];
@@ -385,6 +392,7 @@ public class PlayerAnimator : MonoBehaviour
         currentStepIndex = -1;
         windowOpen       = false;
         pendingAttack    = false;
+        attackTriggered  = false;
         hitDetector?.StopStep();
     }
 
