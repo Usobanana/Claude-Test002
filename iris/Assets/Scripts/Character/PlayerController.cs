@@ -136,6 +136,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleDodge()
     {
+        if (InputHandler.Instance == null) return;
         if (!InputHandler.Instance.DodgeInput) return;
         if (!entity.ConsumeStamina(dodgeStaminaCost)) return;
 

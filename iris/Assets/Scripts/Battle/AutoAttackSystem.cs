@@ -18,6 +18,8 @@ public class AutoAttackSystem : MonoBehaviour
 
     private float attackTimer;
 
+    private static readonly Collider[] overlapBuffer = new Collider[16];
+
     // --- 公開プロパティ ---
     public IDamageable CurrentTarget   { get; private set; }
     public Transform   TargetTransform { get; private set; }
@@ -97,17 +99,18 @@ public class AutoAttackSystem : MonoBehaviour
         if (entity.Data == null) return;
 
         float range = entity.Data.attackRange;
-        var   hits  = Physics.OverlapSphere(transform.position, range);
+        int   count = Physics.OverlapSphereNonAlloc(transform.position, range, overlapBuffer);
 
-        if (hits.Length == 0) { ClearTarget(); return; }
+        if (count == 0) { ClearTarget(); return; }
 
         Vector3     facing        = controller.FacingDirection;
         float       bestScore     = -1f;
         IDamageable bestTarget    = null;
         Transform   bestTransform = null;
 
-        foreach (var hit in hits)
+        for (int i = 0; i < count; i++)
         {
+            var hit        = overlapBuffer[i];
             var damageable = hit.GetComponent<IDamageable>();
             if (damageable == null || !damageable.IsAlive) continue;
 

@@ -104,6 +104,7 @@ public class CharacterEntity : MonoBehaviour
 
     public void GainExp(int amount)
     {
+        if (data == null || data.baseStats.expToNextLevel <= 0) return;
         Exp += amount;
         while (Exp >= data.baseStats.expToNextLevel)
         {

@@ -45,6 +45,8 @@ public class AttackHitbox : MonoBehaviour
     private readonly HashSet<GameObject>  hitThisSwing = new HashSet<GameObject>();
     private bool                          isHitStopping;
 
+    private static readonly Collider[] overlapBuffer = new Collider[16];
+
     void Awake()
     {
         entity = GetComponent<CharacterEntity>();
@@ -76,9 +78,10 @@ public class AttackHitbox : MonoBehaviour
     {
         if (!IsWindowOpen || entity?.Stats == null) return;
 
-        var hits = Physics.OverlapSphere(transform.position, arcRange);
-        foreach (var hit in hits)
+        int count = Physics.OverlapSphereNonAlloc(transform.position, arcRange, overlapBuffer);
+        for (int i = 0; i < count; i++)
         {
+            var hit = overlapBuffer[i];
             // 自分自身を除外
             if (hit.transform.root == transform.root) continue;
 

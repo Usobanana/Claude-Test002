@@ -112,28 +112,19 @@ public class PlayerAnimator : MonoBehaviour
     /// </summary>
     public void RefreshAnimator(Animator newAnim = null)
     {
-        if (newAnim != null)
-            anim = newAnim;
-        else
-            anim = GetComponentInChildren<Animator>();
-
-        if (anim != null)
-        {
-            anim.applyRootMotion = false;
-            swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
-            swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
-        }
-        else
-        {
-            swordArmLayerIdx  = -1;
-            swordHandLayerIdx = -1;
-        }
+        anim = newAnim != null ? newAnim : GetComponentInChildren<Animator>();
+        SetupAnimator(anim);
         ResetCombo();
     }
 
     private void AcquireAnimator()
     {
-        anim = GetComponentInChildren<Animator>();
+        SetupAnimator(GetComponentInChildren<Animator>());
+    }
+
+    private void SetupAnimator(Animator target)
+    {
+        anim = target;
         if (anim != null)
         {
             anim.applyRootMotion = false;
@@ -354,21 +345,21 @@ public class PlayerAnimator : MonoBehaviour
         var  info                = anim.GetCurrentAnimatorStateInfo(0);
         bool currentIsLocomotion = info.shortNameHash == StateIdle || info.shortNameHash == StateRun;
 
-        bool inLocomtion = currentIsLocomotion;
+        bool inLocomotion = currentIsLocomotion;
 
         // トランジション中は next ステートも確認：どちらかが非ロコモーションなら即無効
         if (anim.IsInTransition(0))
         {
             var  nextInfo          = anim.GetNextAnimatorStateInfo(0);
             bool nextIsLocomotion  = nextInfo.shortNameHash == StateIdle || nextInfo.shortNameHash == StateRun;
-            inLocomtion = currentIsLocomotion && nextIsLocomotion;
+            inLocomotion = currentIsLocomotion && nextIsLocomotion;
         }
 
-        if (inLocomtion == swordLayersActive) return; // 変化なし
-        swordLayersActive = inLocomtion;
+        if (inLocomotion == swordLayersActive) return; // 変化なし
+        swordLayersActive = inLocomotion;
 
-        if (swordArmLayerIdx  >= 0) anim.SetLayerWeight(swordArmLayerIdx,  inLocomtion ? 0.7f : 0f);
-        if (swordHandLayerIdx >= 0) anim.SetLayerWeight(swordHandLayerIdx, inLocomtion ? 1.0f : 0f);
+        if (swordArmLayerIdx  >= 0) anim.SetLayerWeight(swordArmLayerIdx,  inLocomotion ? 0.7f : 0f);
+        if (swordHandLayerIdx >= 0) anim.SetLayerWeight(swordHandLayerIdx, inLocomotion ? 1.0f : 0f);
     }
 
     private void ResetCombo()
