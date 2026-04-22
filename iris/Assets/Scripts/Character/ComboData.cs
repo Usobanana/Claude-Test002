@@ -13,52 +13,38 @@ public enum HitShapeType
 [System.Serializable]
 public class HitEventData
 {
-    [Header("判定タイミング（フレーム）")]
     public int hitStartFrame = 5;
     public int hitEndFrame   = 15;
 
-    [Header("判定形状")]
     public HitShapeType shapeType = HitShapeType.Arc;
 
-    [Header("Arc 設定")]
+    // Arc
     public float arcRange = 1.5f;
     [Range(10f, 360f)]
     public float arcAngle = 120f;
 
-    [Header("Rectangle 設定")]
+    // Rectangle
     public float rectLength        = 2f;
     public float rectWidth         = 1f;
     public float rectForwardOffset = 0f;
 
-    [Header("Circle 設定")]
+    // Circle
     public float   circleRadius = 1.5f;
-    public Vector3 circleOffset;        // プレイヤーローカル座標からのオフセット
+    public Vector3 circleOffset;
 
-    [Header("ダメージ")]
     [Range(0f, 500f)]
-    [Tooltip("ダメージ倍率（%）。100 = 攻撃力 × 1.0")]
     public float damageRate = 100f;
 
-    [Header("打感")]
-    [Tooltip("ヒットストップ中の timeScale（0 = 完全停止）")]
     public float hitStopTimeScale  = 0.05f;
-    [Tooltip("ヒットストップ持続時間（実時間・秒）")]
     public float hitStopDuration   = 0.06f;
-    [Tooltip("カメラシェイク強度")]
     public float hitShakeMagnitude = 0.08f;
-    [Tooltip("カメラシェイク持続時間")]
     public float hitShakeDuration  = 0.1f;
 
-    [Header("ノックバック")]
     public float knockbackForce    = 1.5f;
     public float knockbackDuration = 0.2f;
 
-    [Header("SE")]
-    [Tooltip("振り始めSE")]
     public SFX swingSE      = SFX.PlayerSwing;
-    [Tooltip("振り始めSEを鳴らすフレーム（hitStartFrame と同じにする場合は -1）")]
     public int  swingSEFrame = -1;
-    [Tooltip("ヒット時SE")]
     public SFX hitSE        = SFX.PlayerHit;
 
     // ─────────────────────────────────────────
