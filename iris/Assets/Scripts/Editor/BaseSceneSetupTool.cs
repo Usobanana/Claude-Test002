@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.AI;
+using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// BaseScene・ResultScene のセットアップツール
@@ -59,7 +61,120 @@ public static class BaseSceneSetupTool
             Undo.RegisterCreatedObjectUndo(qm, "Create QuestManager");
         }
 
+        // InteractionPromptUI Canvas
+        SetupInteractionPromptUI();
+
         Debug.Log("[BaseSceneSetupTool] BaseScene セットアップ完了");
+    }
+
+    private static void SetupInteractionPromptUI()
+    {
+        if (GameObject.Find("InteractionPromptCanvas") != null) return;
+
+        // Canvas
+        var canvasGo = new GameObject("InteractionPromptCanvas");
+        var canvas   = canvasGo.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 10;
+        canvasGo.AddComponent<CanvasScaler>();
+        canvasGo.AddComponent<GraphicRaycaster>();
+
+        // InteractionPromptUI コンポーネント
+        var promptUI = canvasGo.AddComponent<InteractionPromptUI>();
+
+        // ボタン（画面下中央）
+        var btnGo   = new GameObject("PromptButton");
+        btnGo.transform.SetParent(canvasGo.transform, false);
+        var btnRect = btnGo.AddComponent<RectTransform>();
+        btnRect.anchorMin        = new Vector2(0.5f, 0f);
+        btnRect.anchorMax        = new Vector2(0.5f, 0f);
+        btnRect.pivot            = new Vector2(0.5f, 0f);
+        btnRect.anchoredPosition = new Vector2(0f, 40f);
+        btnRect.sizeDelta        = new Vector2(320f, 70f);
+
+        var btnImg  = btnGo.AddComponent<Image>();
+        btnImg.color = new Color(0.1f, 0.1f, 0.1f, 0.85f);
+        var btn = btnGo.AddComponent<Button>();
+
+        var txtGo   = new GameObject("Label");
+        txtGo.transform.SetParent(btnGo.transform, false);
+        var txtRect = txtGo.AddComponent<RectTransform>();
+        txtRect.anchorMin = Vector2.zero;
+        txtRect.anchorMax = Vector2.one;
+        txtRect.sizeDelta = Vector2.zero;
+        var txt = txtGo.AddComponent<TextMeshProUGUI>();
+        txt.text      = "インタラクション";
+        txt.fontSize  = 26f;
+        txt.alignment = TextAlignmentOptions.Center;
+        txt.color     = Color.white;
+
+        Undo.RegisterCreatedObjectUndo(canvasGo, "Create InteractionPromptUI");
+    }
+
+    [MenuItem("Game/Setup Title Scene Objects")]
+    public static void SetupTitleSceneObjects()
+    {
+        if (GameObject.Find("TitleCanvas") != null)
+        {
+            Debug.Log("[BaseSceneSetupTool] TitleCanvas は既に存在します");
+            return;
+        }
+
+        // Canvas
+        var canvasGo = new GameObject("TitleCanvas");
+        var canvas   = canvasGo.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvasGo.AddComponent<CanvasScaler>();
+        canvasGo.AddComponent<GraphicRaycaster>();
+
+        // 背景パネル
+        var panel     = new GameObject("Panel");
+        panel.transform.SetParent(canvasGo.transform, false);
+        var panelRect = panel.AddComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.sizeDelta = Vector2.zero;
+        panel.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+
+        // タイトルテキスト
+        var titleGo   = new GameObject("TitleText");
+        titleGo.transform.SetParent(panel.transform, false);
+        var titleRect = titleGo.AddComponent<RectTransform>();
+        titleRect.anchoredPosition = new Vector2(0f, 80f);
+        titleRect.sizeDelta        = new Vector2(700f, 120f);
+        var titleTxt  = titleGo.AddComponent<TextMeshProUGUI>();
+        titleTxt.text      = "IRIS";
+        titleTxt.fontSize  = 72f;
+        titleTxt.alignment = TextAlignmentOptions.Center;
+        titleTxt.color     = Color.white;
+
+        // スタートボタン
+        var btnGo   = new GameObject("StartButton");
+        btnGo.transform.SetParent(panel.transform, false);
+        var btnRect = btnGo.AddComponent<RectTransform>();
+        btnRect.anchoredPosition = new Vector2(0f, -80f);
+        btnRect.sizeDelta        = new Vector2(300f, 70f);
+        var btnImg  = btnGo.AddComponent<Image>();
+        btnImg.color = new Color(0.2f, 0.5f, 0.8f);
+        btnGo.AddComponent<Button>();
+
+        var btnTxtGo   = new GameObject("Text");
+        btnTxtGo.transform.SetParent(btnGo.transform, false);
+        var btnTxtRect = btnTxtGo.AddComponent<RectTransform>();
+        btnTxtRect.anchorMin = Vector2.zero;
+        btnTxtRect.anchorMax = Vector2.one;
+        btnTxtRect.sizeDelta = Vector2.zero;
+        var btnTxt = btnTxtGo.AddComponent<TextMeshProUGUI>();
+        btnTxt.text      = "ゲームを始める";
+        btnTxt.fontSize  = 28f;
+        btnTxt.alignment = TextAlignmentOptions.Center;
+        btnTxt.color     = Color.white;
+
+        // TitleScreenUI をCanvasに追加
+        canvasGo.AddComponent<TitleScreenUI>();
+
+        Undo.RegisterCreatedObjectUndo(canvasGo, "Setup Title Canvas");
+        Debug.Log("[BaseSceneSetupTool] TitleScene セットアップ完了");
     }
 
     [MenuItem("Game/Setup Result Scene Objects")]

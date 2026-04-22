@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 38d80b2e09e9b7f4d8cc7302921231da
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/02_Attack/08_Attack_Air_to_Floor_01/Attack_Air_To_Floor_Loop_01.anim
+  uploadId: 609330

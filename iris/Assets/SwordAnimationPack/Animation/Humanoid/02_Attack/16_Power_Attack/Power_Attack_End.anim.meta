@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 37064b0e9919aa244b73225599ef8e65
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/02_Attack/16_Power_Attack/Power_Attack_End.anim
+  uploadId: 609330

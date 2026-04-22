@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 53ca20e47f86d51499f47bb13de8fc7c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/03_Walk/02_Walk_Combat_RM/10_Walk_Combat_B_R_90_RM/Walk_Combat_Loop_B_R_90.anim
+  uploadId: 609330

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a37a237a77563ae4182ead1f47a666e5
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/06_Dodge/02_Dodge_Combat/Dodge_Combat_B.anim
+  uploadId: 609330

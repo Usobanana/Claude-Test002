@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b3710970f28fb8246817555367f5728f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/06_Dodge/05_Dodge_to_Run/Dodge_to_Run_Fast_F.anim
+  uploadId: 609330

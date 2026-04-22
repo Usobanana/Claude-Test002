@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 461a9db65107eae46967902038e769b8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/02_Attack/11_Attack_Up/Attack_Up_Floor_To_Air_02.anim
+  uploadId: 609330

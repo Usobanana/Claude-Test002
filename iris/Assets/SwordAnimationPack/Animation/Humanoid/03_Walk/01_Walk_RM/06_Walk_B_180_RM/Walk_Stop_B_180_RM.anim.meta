@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 074a7b91176e92c44861a6adf8bbaa59
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/03_Walk/01_Walk_RM/06_Walk_B_180_RM/Walk_Stop_B_180_RM.anim
+  uploadId: 609330

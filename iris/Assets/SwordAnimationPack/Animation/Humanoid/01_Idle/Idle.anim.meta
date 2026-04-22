@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 318c8f0eba03d08498c0ff665b5728c8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/01_Idle/Idle.anim
+  uploadId: 609330

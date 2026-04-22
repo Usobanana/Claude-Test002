@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f4ef5e7c346234245bb59688e4753c6a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/08_Hit/06_Hit_Large_Combat/Hit_Large_Combat_Death.anim
+  uploadId: 609330

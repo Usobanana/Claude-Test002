@@ -17,6 +17,10 @@ public class ResultScreenUI : MonoBehaviour
 
     void Start()
     {
+        // SerializeField未設定の場合は子から自動検索
+        if (returnButton == null)
+            returnButton = GetComponentInChildren<Button>(true);
+
         SetupUI();
         returnButton?.onClick.AddListener(ReturnToBase);
 

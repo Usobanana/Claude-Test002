@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// ギルドオブジェクトへのインタラクション
-/// 近づいてEキーを押すとクエスト受理UI（暫定）が出る
+/// ギルドオブジェクトへのインタラクション。
+/// 近づくとボタンが表示され、押すか E キーでクエストを受理する。
 /// </summary>
 public class GuildInteraction : MonoBehaviour
 {
@@ -12,6 +12,7 @@ public class GuildInteraction : MonoBehaviour
 
     private Transform playerTransform;
     private bool      isInRange;
+    private bool      wasInRange;
 
     void Start()
     {
@@ -26,10 +27,22 @@ public class GuildInteraction : MonoBehaviour
         float dist = Vector3.Distance(transform.position, playerTransform.position);
         isInRange = dist <= interactRange;
 
+        // 範囲に入ったらボタン表示、出たら非表示
+        if (isInRange && !wasInRange)
+            InteractionPromptUI.Instance?.Show("クエストを受ける", OpenGuild);
+        else if (!isInRange && wasInRange)
+            InteractionPromptUI.Instance?.Hide();
+
+        wasInRange = isInRange;
+
+        // E キーでも操作可能
         if (isInRange && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-        {
             OpenGuild();
-        }
+    }
+
+    void OnDisable()
+    {
+        if (isInRange) InteractionPromptUI.Instance?.Hide();
     }
 
     private void OpenGuild()
@@ -40,7 +53,6 @@ public class GuildInteraction : MonoBehaviour
             return;
         }
 
-        // 暫定：最初のクエストを自動受理（Phase6でUI実装後に選択式にする）
         var quest = availableQuests[0];
         QuestManager.Instance?.AcceptQuest(quest);
         Debug.Log($"[Guild] クエスト受理: {quest.questName} → 出口からフィールドへ");

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 82d2dce081b15374e9e2c7e5cc630684
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/08_Hit/09_Get_Up/Get_Up.anim
+  uploadId: 609330

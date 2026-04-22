@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8fba77ec02db6b34fa8634e5073990ee
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/06_Dodge/01_Dodge/Dodge_L.anim
+  uploadId: 609330

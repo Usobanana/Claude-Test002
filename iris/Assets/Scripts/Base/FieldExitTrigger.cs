@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 拠点の出口トリガー
-/// クエスト受理済みのプレイヤーが入ったらフィールドへ遷移する
+/// 拠点の出口トリガー。
+/// 近づくとボタンが表示され、押すか E キーでフィールドへ遷移する。
 /// </summary>
 public class FieldExitTrigger : MonoBehaviour
 {
@@ -11,6 +11,7 @@ public class FieldExitTrigger : MonoBehaviour
 
     private Transform playerTransform;
     private bool      playerInZone;
+    private bool      wasInZone;
 
     void Start()
     {
@@ -25,10 +26,22 @@ public class FieldExitTrigger : MonoBehaviour
         float dist = Vector3.Distance(transform.position, playerTransform.position);
         playerInZone = dist <= triggerRadius;
 
+        // 範囲に入ったらボタン表示、出たら非表示
+        if (playerInZone && !wasInZone)
+            InteractionPromptUI.Instance?.Show("クエストへ向かう", TryDepart);
+        else if (!playerInZone && wasInZone)
+            InteractionPromptUI.Instance?.Hide();
+
+        wasInZone = playerInZone;
+
+        // E キーでも操作可能
         if (playerInZone && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-        {
             TryDepart();
-        }
+    }
+
+    void OnDisable()
+    {
+        if (playerInZone) InteractionPromptUI.Instance?.Hide();
     }
 
     private void TryDepart()

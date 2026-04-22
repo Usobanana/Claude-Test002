@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0c9170d76bf24884c91421996391333f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/02_Attack/16_Power_Attack/Power_Attack_Start.anim
+  uploadId: 609330

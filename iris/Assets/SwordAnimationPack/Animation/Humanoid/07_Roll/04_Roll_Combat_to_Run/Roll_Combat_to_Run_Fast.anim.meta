@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2ec0280bd9c4bf74993e43c84b1003a1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/07_Roll/04_Roll_Combat_to_Run/Roll_Combat_to_Run_Fast.anim
+  uploadId: 609330

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7d5ed4a33dca3114c847e1621cbc5076
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256301
+  packageName: Sword Animations Pack
+  packageVersion: 1.0.2
+  assetPath: Assets/SwordAnimationPack/Animation/Humanoid/04_Run/02_Run_Combat_RM/08_Run_Combat_B_R_45_RM/Run_Combat_Start_B_R_45_RM.anim
+  uploadId: 609330
