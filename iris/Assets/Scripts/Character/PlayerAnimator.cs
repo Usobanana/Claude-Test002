@@ -349,7 +349,9 @@ public class PlayerAnimator : MonoBehaviour
         float t    = info.normalizedTime % 1f;
         var   step = comboData.steps[currentStepIndex];
 
-        hitDetector?.UpdateDetection(info.normalizedTime);
+        // 遷移中は古い normalizedTime で新ステップの判定が誤作動するためスキップ
+        if (!anim.IsInTransition(0))
+            hitDetector?.UpdateDetection(info.normalizedTime);
 
         bool shouldBeOpen = t >= step.WindowStartNormalized && t < step.WindowEndNormalized;
 

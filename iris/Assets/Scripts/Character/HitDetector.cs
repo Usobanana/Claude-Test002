@@ -31,6 +31,8 @@ public class HitDetector : MonoBehaviour
 
     public void StartStep(ComboStepData step)
     {
+        ForceCloseAllWindows();
+
         currentStep = step;
         int count   = step?.hitEvents?.Length ?? 0;
 
@@ -43,10 +45,21 @@ public class HitDetector : MonoBehaviour
 
     public void StopStep()
     {
+        ForceCloseAllWindows();
         currentStep     = null;
         sePlayedFlags   = null;
         windowOpenFlags = null;
         hitSets         = null;
+    }
+
+    private void ForceCloseAllWindows()
+    {
+        if (isHitStopping)
+        {
+            StopAllCoroutines();
+            Time.timeScale = 1f;
+            isHitStopping  = false;
+        }
     }
 
     /// <summary>
