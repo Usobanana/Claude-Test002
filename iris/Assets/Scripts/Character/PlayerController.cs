@@ -12,7 +12,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed              = 5f;
     [SerializeField] private float rotateSpeed            = 720f;  // 度/秒
     [Tooltip("攻撃・スキル・回避中の移動速度倍率（0=完全停止, 0.2=20%）")]
-    [SerializeField] [Range(0f, 1f)] private float actingMoveMultiplier = 0.2f;
+    [SerializeField] [Range(0f, 1f)] private float actingMoveMultiplier = 0f;
+
+    [Header("モデル固定")]
+    [Tooltip("子の Model オブジェクト。LateUpdate で localPosition を (0,0,0) に固定し Root Motion ズレを防ぐ")]
+    [SerializeField] private Transform modelRoot;
 
     [Header("ダッシュ")]
     [SerializeField] private float dashSpeed        = 9f;
@@ -169,6 +173,14 @@ public class PlayerController : MonoBehaviour
         }
         velocity.y += gravity * Time.deltaTime;
         cc.Move(velocity * Time.deltaTime);
+    }
+
+    void LateUpdate()
+    {
+        // 子モデルのローカル座標を常に原点に強制固定。
+        // Apply Root Motion や外部スクリプトによるズレが蓄積しても毎フレーム解消する。
+        if (modelRoot != null)
+            modelRoot.localPosition = Vector3.zero;
     }
 
     // --- 公開プロパティ ---
