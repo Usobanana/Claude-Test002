@@ -342,6 +342,9 @@ public class PlayerAnimator : MonoBehaviour
         // ComboAttack ステートから離れた（アニメーション完了）
         if (!info.IsName(ComboAttackName))
         {
+            // Idle→ComboAttack 遷移中は次のステートが ComboAttack なのでリセットしない
+            if (anim.IsInTransition(0) && anim.GetNextAnimatorStateInfo(0).IsName(ComboAttackName))
+                return;
             ResetCombo();
             return;
         }
