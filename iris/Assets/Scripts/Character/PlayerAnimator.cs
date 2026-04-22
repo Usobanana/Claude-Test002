@@ -258,7 +258,9 @@ public class PlayerAnimator : MonoBehaviour
             return;
         }
         overrideController = new AnimatorOverrideController(baseController);
+        overrideController.hideFlags = HideFlags.DontSave; // シーンに保存させない
         anim.runtimeAnimatorController = overrideController;
+        Debug.Log($"[PlayerAnimator] OverrideController 作成完了。ベース: {baseController.name}");
     }
 
     private static RuntimeAnimatorController GetBaseController(RuntimeAnimatorController rtc)
