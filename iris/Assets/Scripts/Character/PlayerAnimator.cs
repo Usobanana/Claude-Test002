@@ -41,6 +41,7 @@ public class PlayerAnimator : MonoBehaviour
     private PlayerController controller;
     private CharacterEntity  entity;
     private AutoAttackSystem autoAttack;
+    private HitDetector      hitDetector;
 
     private AnimatorOverrideController overrideController;
 
@@ -115,9 +116,10 @@ public class PlayerAnimator : MonoBehaviour
 
     void Awake()
     {
-        controller = GetComponent<PlayerController>();
-        entity     = GetComponent<CharacterEntity>();
-        autoAttack = GetComponent<AutoAttackSystem>();
+        controller  = GetComponent<PlayerController>();
+        entity      = GetComponent<CharacterEntity>();
+        autoAttack  = GetComponent<AutoAttackSystem>();
+        hitDetector = GetComponent<HitDetector>();
         AcquireAnimator();
     }
 
@@ -325,8 +327,7 @@ public class PlayerAnimator : MonoBehaviour
 
         overrideController[comboPlaceholderClip] = step.clip;
         anim.SetTrigger(AttackHash);
-
-        AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
+        hitDetector?.StartStep(step);
 
         if (comboMode == ComboMode.Input)
             autoAttack?.OnComboHit();
@@ -347,6 +348,8 @@ public class PlayerAnimator : MonoBehaviour
 
         float t    = info.normalizedTime % 1f;
         var   step = comboData.steps[currentStepIndex];
+
+        hitDetector?.UpdateDetection(info.normalizedTime);
 
         bool shouldBeOpen = t >= step.WindowStartNormalized && t < step.WindowEndNormalized;
 
@@ -377,6 +380,7 @@ public class PlayerAnimator : MonoBehaviour
         currentStepIndex = -1;
         windowOpen       = false;
         pendingAttack    = false;
+        hitDetector?.StopStep();
     }
 
     // ─────────────────────────────────────────
