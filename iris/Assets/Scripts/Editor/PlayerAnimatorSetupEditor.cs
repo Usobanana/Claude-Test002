@@ -6,6 +6,9 @@ using UnityEngine;
 /// <summary>
 /// PlayerAnimator の Inspector に「Animator をセットアップ」ボタンを追加する。
 /// AnimatorController に ComboAttack ステート・遷移・タグを自動生成する。
+///
+/// メニューからも実行可能: Game → Setup Player Animator
+/// （Inspector のボタンが表示されない場合はメニューから実行する）
 /// </summary>
 [CustomEditor(typeof(PlayerAnimator))]
 public class PlayerAnimatorSetupEditor : Editor
@@ -16,8 +19,11 @@ public class PlayerAnimatorSetupEditor : Editor
     private const string AttackTag           = "Attack";
     private const string AttackParamName     = "Attack";
 
-    // Locomotion タグを自動付与するステート名（部分一致）
     private static readonly string[] LocomotionStateNames = { "Idle", "Run", "Walk", "Locomotion" };
+
+    // ─────────────────────────────────────────
+    // Inspector UI
+    // ─────────────────────────────────────────
 
     public override void OnInspectorGUI()
     {
@@ -27,22 +33,43 @@ public class PlayerAnimatorSetupEditor : Editor
         EditorGUILayout.LabelField("─── Animator セットアップ ───", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
             "AnimatorController に ComboAttack ステート・遷移・タグを自動生成します。\n" +
-            "Idle・Run を含む名前のステートには Tag \"Locomotion\" を自動付与します。",
+            "Idle・Run を含む名前のステートには Tag \"Locomotion\" を自動付与します。\n\n" +
+            "メニューからも実行可能: Game → Setup Player Animator",
             MessageType.Info
         );
 
         if (GUILayout.Button("Animator をセットアップ", GUILayout.Height(32)))
-            RunSetup();
+            RunSetup((PlayerAnimator)target);
+    }
+
+    // ─────────────────────────────────────────
+    // メニューアイテム（Inspector が表示されない場合の代替手段）
+    // ─────────────────────────────────────────
+
+    [MenuItem("Game/Setup Player Animator")]
+    public static void SetupFromMenu()
+    {
+        var go = Selection.activeGameObject;
+        if (go == null)
+        {
+            EditorUtility.DisplayDialog("エラー", "Hierarchy で Player オブジェクトを選択してから実行してください", "OK");
+            return;
+        }
+        var playerAnimator = go.GetComponent<PlayerAnimator>();
+        if (playerAnimator == null)
+        {
+            EditorUtility.DisplayDialog("エラー", "選択中のオブジェクトに PlayerAnimator コンポーネントがありません", "OK");
+            return;
+        }
+        RunSetup(playerAnimator);
     }
 
     // ─────────────────────────────────────────
     // セットアップ処理
     // ─────────────────────────────────────────
 
-    private void RunSetup()
+    private static void RunSetup(PlayerAnimator playerAnimator)
     {
-        var playerAnimator = (PlayerAnimator)target;
-
         var animator = playerAnimator.GetComponentInChildren<Animator>();
         if (animator == null)
         {
@@ -62,27 +89,21 @@ public class PlayerAnimatorSetupEditor : Editor
 
         var sm = controller.layers[0].stateMachine;
 
-        // 1. プレースホルダークリップを作成（または既存を取得）
         var placeholder = GetOrCreatePlaceholderClip(controller);
 
-        // 2. ComboAttack ステートを作成（または既存を取得）して設定
         var comboState = GetOrCreateState(sm, ComboStateName);
         comboState.motion = placeholder;
         comboState.tag    = AttackTag;
 
-        // 3. Locomotion ステートにタグを付与
         int taggedCount = TagLocomotionStates(sm);
 
-        // 4. Any State → ComboAttack 遷移を設定
         EnsureAttackParameter(controller);
         EnsureAnyStateTransition(sm, comboState);
 
-        // 5. ComboAttack → Idle 遷移を設定（Idle がなければスキップ）
         var idleState = FindStateByName(sm, "Idle");
         if (idleState != null)
             EnsureExitTransition(comboState, idleState);
 
-        // 6. PlayerAnimator の comboPlaceholderClip フィールドを更新
         var so   = new SerializedObject(playerAnimator);
         var prop = so.FindProperty("comboPlaceholderClip");
         prop.objectReferenceValue = placeholder;
@@ -91,12 +112,12 @@ public class PlayerAnimatorSetupEditor : Editor
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();
 
-        string message = $"セットアップが完了しました。\n\n"
+        string message = "セットアップが完了しました。\n\n"
                        + $"・ComboAttack ステート：作成済み\n"
                        + $"・プレースホルダークリップ：{placeholder.name}\n"
                        + $"・Locomotion タグ付与：{taggedCount} ステート";
         if (taggedCount == 0)
-            message += "\n\n⚠ Idle・Run ステートが見つかりませんでした。\n  Animator で手動タグを設定してください。";
+            message += "\n\n⚠ Idle・Run ステートが見つかりませんでした。\n  Animator で手動でタグを設定してください。";
 
         EditorUtility.DisplayDialog("完了", message, "OK");
         Debug.Log($"[PlayerAnimatorSetup] {message}");
@@ -106,7 +127,7 @@ public class PlayerAnimatorSetupEditor : Editor
     // プレースホルダークリップ
     // ─────────────────────────────────────────
 
-    private AnimationClip GetOrCreatePlaceholderClip(AnimatorController controller)
+    private static AnimationClip GetOrCreatePlaceholderClip(AnimatorController controller)
     {
         string controllerPath = AssetDatabase.GetAssetPath(controller);
         string dir            = Path.GetDirectoryName(controllerPath)?.Replace("\\", "/") ?? "Assets";
@@ -124,13 +145,13 @@ public class PlayerAnimatorSetupEditor : Editor
     // ステート操作
     // ─────────────────────────────────────────
 
-    private AnimatorState GetOrCreateState(AnimatorStateMachine sm, string stateName)
+    private static AnimatorState GetOrCreateState(AnimatorStateMachine sm, string stateName)
     {
         var existing = FindStateByName(sm, stateName);
         return existing ?? sm.AddState(stateName);
     }
 
-    private AnimatorState FindStateByName(AnimatorStateMachine sm, string stateName)
+    private static AnimatorState FindStateByName(AnimatorStateMachine sm, string stateName)
     {
         foreach (var cs in sm.states)
             if (cs.state.name == stateName)
@@ -138,7 +159,7 @@ public class PlayerAnimatorSetupEditor : Editor
         return null;
     }
 
-    private int TagLocomotionStates(AnimatorStateMachine sm)
+    private static int TagLocomotionStates(AnimatorStateMachine sm)
     {
         int count = 0;
         foreach (var cs in sm.states)
@@ -160,35 +181,34 @@ public class PlayerAnimatorSetupEditor : Editor
     // パラメータ・遷移
     // ─────────────────────────────────────────
 
-    private void EnsureAttackParameter(AnimatorController controller)
+    private static void EnsureAttackParameter(AnimatorController controller)
     {
         foreach (var p in controller.parameters)
             if (p.name == AttackParamName) return;
         controller.AddParameter(AttackParamName, AnimatorControllerParameterType.Trigger);
     }
 
-    private void EnsureAnyStateTransition(AnimatorStateMachine sm, AnimatorState comboState)
+    private static void EnsureAnyStateTransition(AnimatorStateMachine sm, AnimatorState comboState)
     {
-        // 既に同じ遷移があれば何もしない
         foreach (var t in sm.anyStateTransitions)
             if (t.destinationState == comboState) return;
 
         var transition = sm.AddAnyStateTransition(comboState);
-        transition.canTransitionToSelf = true;   // コンボ中の自己遷移を許可
+        transition.canTransitionToSelf = true;
         transition.hasExitTime         = false;
         transition.duration            = 0.05f;
         transition.offset              = 0f;
         transition.AddCondition(AnimatorConditionMode.If, 0, AttackParamName);
     }
 
-    private void EnsureExitTransition(AnimatorState from, AnimatorState to)
+    private static void EnsureExitTransition(AnimatorState from, AnimatorState to)
     {
         foreach (var t in from.transitions)
             if (t.destinationState == to) return;
 
         var transition = from.AddTransition(to);
         transition.hasExitTime      = true;
-        transition.exitTime         = 1f;    // アニメーション完了後に Idle へ
+        transition.exitTime         = 1f;
         transition.duration         = 0.1f;
         transition.hasFixedDuration = false;
     }
