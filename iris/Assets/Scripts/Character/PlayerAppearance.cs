@@ -59,6 +59,9 @@ public class PlayerAppearance : MonoBehaviour
 
         if (modelPrefab != null) SwapModel(modelPrefab);
         else                     AttachWeapon();
+
+        if (data.comboData != null)
+            GetComponent<PlayerAnimator>()?.SetComboData(data.comboData);
     }
 
     /// <summary>

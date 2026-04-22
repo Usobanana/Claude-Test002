@@ -20,6 +20,10 @@ public class CharacterData : ScriptableObject
     public float attackRange = 3f;       // オートアタック範囲（半径）
     public float attackInterval = 1f;    // 攻撃間隔（秒）
 
+    [Header("コンボ設定")]
+    [Tooltip("通常攻撃のコンボ定義。未設定の場合は PlayerAnimator のデフォルトを使用")]
+    public ComboData comboData;
+
     [Header("武器種")]
     public WeaponType weaponType;
 

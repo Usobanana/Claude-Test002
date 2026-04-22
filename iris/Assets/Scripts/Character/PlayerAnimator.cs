@@ -1,10 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// プレイヤーのアニメーション制御・コンボ管理
+/// プレイヤーのアニメーション制御・コンボ管理。
 ///
-/// [Auto モード]  ターゲット検知後、attackInterval ごとにコンボが自動進行（1→2→3→1…）
-/// [Input モード] 左クリック/右トリガーを押すたびにコンボが進む（コンボウィンドウ内のみ）
+/// コンボは ComboData (ScriptableObject) で定義する。
+/// AnimatorOverrideController でクリップをステップごとにスワップし、
+/// normalizedTime を監視して入力ウィンドウを開閉する。
+///
+/// [Auto モード]  AutoAttackSystem のタイマーが来るたびにコンボが自動進行
+/// [Input モード] 攻撃ボタンを押すたびにコンボが進む（ウィンドウ内のみ）
 /// </summary>
 [RequireComponent(typeof(PlayerController))]
 [RequireComponent(typeof(CharacterEntity))]
@@ -17,43 +21,52 @@ public class PlayerAnimator : MonoBehaviour
     [Header("コンボモード")]
     [SerializeField] private ComboMode comboMode = ComboMode.Input;
 
-    [Header("コンボ設定")]
-    [Tooltip("Input モード：コンボウィンドウ持続時間（秒）")]
-    [SerializeField] private float comboWindowDuration = 0.8f;
-    [Tooltip("攻撃後 OnComboWindowOpen が来ない場合のリセット上限（秒）")]
-    [SerializeField] private float comboResetTimeout   = 2.0f;
+    [Header("コンボデータ")]
+    [Tooltip("このキャラクターのコンボ設定。CharacterData.ApplyCharacter() で上書きされる")]
+    [SerializeField] private ComboData comboData;
+
+    [Tooltip("AnimatorController 内の攻撃ステートが参照するプレースホルダークリップ名")]
+    [SerializeField] private string comboPlaceholderClipName = "AttackBase";
 
     // ─────────────────────────────────────────
-    // 内部状態
+    // コンポーネント参照
     // ─────────────────────────────────────────
 
-    private Animator          anim;
-    private PlayerController  controller;
-    private CharacterEntity   entity;
-    private AutoAttackSystem  autoAttack;
+    private Animator         anim;
+    private PlayerController controller;
+    private CharacterEntity  entity;
+    private AutoAttackSystem autoAttack;
 
-    // コンボ
-    private int   comboIndex        = 0;    // 0=待機, 1=1打目, 2=2打目, 3=3打目
-    private float comboWindowTimer  = 0f;
-    private float comboResetTimer   = 0f;   // Animation Event が来ない場合のフォールバック
-    private bool  inComboWindow     = false;
-    private bool  pendingAttack     = false; // ウィンドウ外入力バッファ
+    private AnimatorOverrideController overrideController;
 
-    // アニメーターハッシュ
-    private static readonly int SpeedHash      = Animator.StringToHash("Speed");
-    private static readonly int AttackHash     = Animator.StringToHash("Attack");
-    private static readonly int ComboIndexHash = Animator.StringToHash("ComboIndex");
-    private static readonly int DodgeHash      = Animator.StringToHash("Dodge");
-    private static readonly int IsDeadHash     = Animator.StringToHash("IsDead");
+    // ─────────────────────────────────────────
+    // コンボ状態
+    // ─────────────────────────────────────────
 
-    // ベースレイヤーのステートハッシュ（ロコモーション判定用）
-    private static readonly int StateIdle       = Animator.StringToHash("Idle");
-    private static readonly int StateRun        = Animator.StringToHash("Run");
-    private static readonly int StateAttack1RTI = Animator.StringToHash("Attack1_RTI");
-    private static readonly int StateAttack2RTI = Animator.StringToHash("Attack2_RTI");
-    private static readonly int StateAttack3RTI = Animator.StringToHash("Attack3_RTI");
+    private int  currentStepIndex = -1;   // -1 = 非攻撃中
+    private bool windowOpen       = false;
+    private bool pendingAttack    = false;
 
-    // SwordArm / SwordHand レイヤーインデックス（-1 = 存在しない）
+    // ─────────────────────────────────────────
+    // Animator パラメータハッシュ
+    // ─────────────────────────────────────────
+
+    private static readonly int SpeedHash  = Animator.StringToHash("Speed");
+    private static readonly int AttackHash = Animator.StringToHash("Attack");
+    private static readonly int DodgeHash  = Animator.StringToHash("Dodge");
+    private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
+
+    // ─────────────────────────────────────────
+    // Animator ステート識別（名前ではなくTag・名前を最小限に）
+    // ─────────────────────────────────────────
+
+    private const string LocomotionTag   = "Locomotion";
+    private const string ComboAttackName = "ComboAttack";
+
+    // ─────────────────────────────────────────
+    // SwordArm / SwordHand レイヤー
+    // ─────────────────────────────────────────
+
     private int  swordArmLayerIdx  = -1;
     private int  swordHandLayerIdx = -1;
     private bool swordLayersActive = true;
@@ -71,8 +84,8 @@ public class PlayerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// 攻撃・スキル・回避・被弾・死亡アニメーション中は true。
-    /// PlayerController が移動速度を減衰させるために参照する。
+    /// Locomotion（Idle/Run）以外のステートにいるとき true。
+    /// Idleステート・Runステートには Animator で Tag "Locomotion" を付けること。
     /// </summary>
     public bool IsActing
     {
@@ -80,19 +93,16 @@ public class PlayerAnimator : MonoBehaviour
         {
             if (anim == null) return false;
             var info = anim.GetCurrentAnimatorStateInfo(0);
-            bool currentIsLocomotion = info.shortNameHash == StateIdle
-                                    || info.shortNameHash == StateRun;
-            // トランジション中：遷移先が非ロコモーションなら即 Acting 扱い
             if (anim.IsInTransition(0))
             {
                 var next = anim.GetNextAnimatorStateInfo(0);
-                bool nextIsLocomotion = next.shortNameHash == StateIdle
-                                     || next.shortNameHash == StateRun;
-                return !currentIsLocomotion || !nextIsLocomotion;
+                return !info.IsTag(LocomotionTag) || !next.IsTag(LocomotionTag);
             }
-            return !currentIsLocomotion;
+            return !info.IsTag(LocomotionTag);
         }
     }
+
+    public bool IsAttacking => currentStepIndex >= 0;
 
     // ─────────────────────────────────────────
     // Unity ライフサイクル
@@ -104,38 +114,6 @@ public class PlayerAnimator : MonoBehaviour
         entity     = GetComponent<CharacterEntity>();
         autoAttack = GetComponent<AutoAttackSystem>();
         AcquireAnimator();
-    }
-
-    /// <summary>
-    /// モデル差し替え後にAnimator参照を更新する。PlayerAppearance.SwapModel()から呼ぶ。
-    /// newAnim を渡すと確実にそのAnimatorを使う（タイミング問題を回避）。
-    /// </summary>
-    public void RefreshAnimator(Animator newAnim = null)
-    {
-        anim = newAnim != null ? newAnim : GetComponentInChildren<Animator>();
-        SetupAnimator(anim);
-        ResetCombo();
-    }
-
-    private void AcquireAnimator()
-    {
-        SetupAnimator(GetComponentInChildren<Animator>());
-    }
-
-    private void SetupAnimator(Animator target)
-    {
-        anim = target;
-        if (anim != null)
-        {
-            anim.applyRootMotion = false;
-            swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
-            swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
-        }
-        else
-        {
-            swordArmLayerIdx  = -1;
-            swordHandLayerIdx = -1;
-        }
     }
 
     void Start()
@@ -160,42 +138,43 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (anim == null) return;
 
-        // 移動速度（ダッシュ中は Speed を 2 にして Run アニメーションを維持）
-        Vector2 input    = InputHandler.Instance != null ? InputHandler.Instance.MoveInput : Vector2.zero;
-        bool    dashing  = controller.IsDashing;
-        float   speed    = dashing ? Mathf.Max(input.magnitude, 1f) : input.magnitude;
-        anim.SetFloat(SpeedHash, speed);
-
-        // SwordArm/SwordHand レイヤー: ロコモーション中のみ有効、戦闘中は無効
+        UpdateSpeed();
         UpdateSwordLayers();
+        UpdateDodgeAnim();
 
-        // 回避（開始時に1回だけ）
-        bool isDodging = controller.IsDodging;
-        if (isDodging && !wasDodging)
-        {
-            anim.SetTrigger(DodgeHash);
-            AudioManager.Instance?.PlaySE(SFX.PlayerDodge);
-        }
-        wasDodging = isDodging;
-
-        // Input モード：攻撃入力でコンボ進行
         if (comboMode == ComboMode.Input && InputHandler.Instance != null)
         {
             if (InputHandler.Instance.AttackInput)
                 TriggerComboAttack();
         }
 
-        // コンボウィンドウのタイムアウト管理
-        UpdateComboWindow();
+        UpdateComboState();
     }
 
     // ─────────────────────────────────────────
-    // コンボ制御（外部から呼ばれる）
+    // 公開API
     // ─────────────────────────────────────────
 
     /// <summary>
-    /// Auto モード用：AutoAttackSystem のタイマーが来たときに呼ぶ
+    /// キャラクター切り替え時にコンボデータを更新する。
+    /// PlayerAppearance.ApplyCharacter() から呼ぶ。
     /// </summary>
+    public void SetComboData(ComboData data)
+    {
+        comboData = data;
+        ResetCombo();
+    }
+
+    /// <summary>
+    /// モデル差し替え後に Animator 参照を更新する。PlayerAppearance.SwapModel() から呼ぶ。
+    /// </summary>
+    public void RefreshAnimator(Animator newAnim = null)
+    {
+        SetupAnimator(newAnim != null ? newAnim : GetComponentInChildren<Animator>());
+        ResetCombo();
+    }
+
+    /// <summary>Auto モード用：AutoAttackSystem のタイマーが来たときに呼ぶ</summary>
     public void TriggerAutoAttack()
     {
         if (comboMode != ComboMode.Auto) return;
@@ -203,22 +182,20 @@ public class PlayerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Input モード用（Update 内 / 外部から呼んでもよい）
-    /// コンボウィンドウ内または1打目なら即進行、それ以外はバッファに積む。
-    /// バッファは OnComboWindowOpen() で自動消費される。
+    /// Input モード用。
+    /// ウィンドウ内または1打目なら即進行、それ以外はバッファに積む。
     /// </summary>
     public void TriggerComboAttack()
     {
         if (comboMode != ComboMode.Input) return;
-
-        if (comboIndex == 0 || inComboWindow)
+        if (currentStepIndex < 0 || windowOpen)
             AdvanceCombo();
         else
-            pendingAttack = true; // ウィンドウが開くまで保持
+            pendingAttack = true;
     }
 
     // ─────────────────────────────────────────
-    // スキルアニメーション（外部から呼ぶ）
+    // スキルアニメーション
     // ─────────────────────────────────────────
 
     private static readonly int Skill1Hash = Animator.StringToHash("Skill1");
@@ -242,70 +219,108 @@ public class PlayerAnimator : MonoBehaviour
     }
 
     // ─────────────────────────────────────────
+    // Animation Event 互換（クリップにイベントが設定されていれば使われる）
+    // ─────────────────────────────────────────
+
+    public void OnComboWindowOpen() => OpenComboWindow();
+    public void OnComboEnd()        => ResetCombo();
+
+    // ─────────────────────────────────────────
     // 内部ロジック
     // ─────────────────────────────────────────
 
+    private void AcquireAnimator()
+    {
+        SetupAnimator(GetComponentInChildren<Animator>());
+    }
+
+    private void SetupAnimator(Animator target)
+    {
+        anim = target;
+        if (anim == null)
+        {
+            overrideController = null;
+            swordArmLayerIdx   = -1;
+            swordHandLayerIdx  = -1;
+            return;
+        }
+
+        anim.applyRootMotion = false;
+        swordArmLayerIdx     = anim.GetLayerIndex("SwordArm");
+        swordHandLayerIdx    = anim.GetLayerIndex("SwordHand");
+
+        overrideController = new AnimatorOverrideController(anim.runtimeAnimatorController);
+        anim.runtimeAnimatorController = overrideController;
+    }
+
     private void AdvanceCombo()
     {
-        comboIndex = comboIndex >= 3 ? 1 : comboIndex + 1;
-        anim.SetInteger(ComboIndexHash, comboIndex);
-        anim.SetTrigger(AttackHash);
-        AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
+        if (comboData == null || comboData.StepCount == 0) return;
 
-        // ウィンドウは Animation Event (OnComboWindowOpen) が来るまで閉じたまま
-        inComboWindow    = false;
-        comboWindowTimer = 0f;
-        comboResetTimer  = comboResetTimeout; // フォールバック用タイムアウト開始
+        int nextStep = currentStepIndex < 0 ? 0 : currentStepIndex + 1;
+
+        // 最終段を超えたらリセット（最後の段が終わったあと入力があっても連続しない）
+        if (nextStep >= comboData.StepCount)
+        {
+            ResetCombo();
+            return;
+        }
+
+        PlayComboStep(nextStep);
+    }
+
+    private void PlayComboStep(int stepIndex)
+    {
+        if (overrideController == null) return;
+
+        var step = comboData.steps[stepIndex];
+        if (step?.clip == null)
+        {
+            Debug.LogWarning($"[PlayerAnimator] ComboStep[{stepIndex}] に clip が未設定です");
+            return;
+        }
+
+        currentStepIndex = stepIndex;
+        windowOpen       = false;
         pendingAttack    = false;
 
-        // Input モード時はダメージを AutoAttackSystem に委譲
+        // クリップをスワップしてからトリガーを発火
+        overrideController[comboPlaceholderClipName] = step.clip;
+        anim.SetTrigger(AttackHash);
+
+        AudioManager.Instance?.PlaySE(SFX.PlayerAttack);
+
         if (comboMode == ComboMode.Input)
             autoAttack?.OnComboHit();
     }
 
-    private void UpdateComboWindow()
+    private void UpdateComboState()
     {
-        if (comboMode == ComboMode.Auto) return;
+        if (currentStepIndex < 0 || comboData == null) return;
 
-        // ── フェーズ1: RTI ステート検出でウィンドウを開く（Animation Event の取りこぼし対策）──
-        if (!inComboWindow && comboIndex > 0)
-        {
-            var info = anim.GetCurrentAnimatorStateInfo(0);
-            bool inRTI = info.shortNameHash == StateAttack1RTI
-                      || info.shortNameHash == StateAttack2RTI
-                      || info.shortNameHash == StateAttack3RTI;
-            if (inRTI)
-            {
-                OpenComboWindow();
-                return;
-            }
-        }
+        var info = anim.GetCurrentAnimatorStateInfo(0);
 
-        // ── フェーズ2: フォールバックリセット（RTI にも入らなかった場合）──
-        if (!inComboWindow && comboResetTimer > 0f)
+        // ComboAttack ステートから離れた（アニメーション完了）
+        if (!info.IsName(ComboAttackName))
         {
-            comboResetTimer -= Time.deltaTime;
-            if (comboResetTimer <= 0f)
-                ResetCombo();
+            ResetCombo();
             return;
         }
 
-        // ── フェーズ3: ウィンドウのタイムアウト ──
-        if (!inComboWindow) return;
-        comboWindowTimer -= Time.deltaTime;
-        if (comboWindowTimer <= 0f)
-            ResetCombo();
+        float t    = info.normalizedTime % 1f;
+        var   step = comboData.steps[currentStepIndex];
+
+        bool shouldBeOpen = t >= step.WindowStartNormalized && t < step.WindowEndNormalized;
+
+        if (shouldBeOpen && !windowOpen)
+            OpenComboWindow();
+        else if (!shouldBeOpen && windowOpen && t >= step.WindowEndNormalized)
+            CloseComboWindow();
     }
 
-    /// <summary>
-    /// コンボウィンドウを開き、pendingAttack があれば即消費する。
-    /// RTI ステート検出・Animation Event の両方から呼ばれる。
-    /// </summary>
     private void OpenComboWindow()
     {
-        inComboWindow    = true;
-        comboWindowTimer = comboWindowDuration;
-        comboResetTimer  = 0f;
+        windowOpen = true;
 
         if (pendingAttack)
         {
@@ -314,63 +329,63 @@ public class PlayerAnimator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// アニメーションイベントから呼ぶ：コンボウィンドウを開く。
-    /// ウィンドウ外で押されていた入力（pendingAttack）があれば即消費して次コンボへ進む。
-    /// </summary>
-    public void OnComboWindowOpen()
+    private void CloseComboWindow()
     {
-        OpenComboWindow();
+        windowOpen = false;
+    }
+
+    private void ResetCombo()
+    {
+        currentStepIndex = -1;
+        windowOpen       = false;
+        pendingAttack    = false;
+    }
+
+    // ─────────────────────────────────────────
+    // Animator 更新ヘルパー
+    // ─────────────────────────────────────────
+
+    private void UpdateSpeed()
+    {
+        Vector2 input   = InputHandler.Instance != null ? InputHandler.Instance.MoveInput : Vector2.zero;
+        bool    dashing = controller.IsDashing;
+        float   speed   = dashing ? Mathf.Max(input.magnitude, 1f) : input.magnitude;
+        anim.SetFloat(SpeedHash, speed);
+    }
+
+    private void UpdateDodgeAnim()
+    {
+        bool isDodging = controller.IsDodging;
+        if (isDodging && !wasDodging)
+        {
+            anim.SetTrigger(DodgeHash);
+            AudioManager.Instance?.PlaySE(SFX.PlayerDodge);
+        }
+        wasDodging = isDodging;
     }
 
     /// <summary>
-    /// アニメーションイベントから呼ぶ：コンボウィンドウを閉じてリセット
-    /// </summary>
-    public void OnComboEnd()
-    {
-        pendingAttack = false;
-        ResetCombo();
-    }
-
-    /// <summary>
-    /// ベースレイヤーが Idle または Run の場合のみ SwordArm/SwordHand を有効にする。
-    /// 戦闘アニメーション（Attack/Dodge/Hit/Death 等）は全身アニメーションを使うため無効にする。
-    /// トランジション中は current/next 両方がロコモーションの場合のみ有効にする。
-    /// （Idle→Attack のブレンド中に Idle_Sword が混入するのを防ぐ）
+    /// SwordArm/SwordHand レイヤーは Locomotion 中のみ有効にする。
+    /// 戦闘アニメーション中は全身アニメーションを優先するため無効にする。
     /// </summary>
     private void UpdateSwordLayers()
     {
         if (swordArmLayerIdx < 0 && swordHandLayerIdx < 0) return;
 
-        var  info                = anim.GetCurrentAnimatorStateInfo(0);
-        bool currentIsLocomotion = info.shortNameHash == StateIdle || info.shortNameHash == StateRun;
+        var  info         = anim.GetCurrentAnimatorStateInfo(0);
+        bool inLocomotion = info.IsTag(LocomotionTag);
 
-        bool inLocomotion = currentIsLocomotion;
-
-        // トランジション中は next ステートも確認：どちらかが非ロコモーションなら即無効
         if (anim.IsInTransition(0))
         {
-            var  nextInfo          = anim.GetNextAnimatorStateInfo(0);
-            bool nextIsLocomotion  = nextInfo.shortNameHash == StateIdle || nextInfo.shortNameHash == StateRun;
-            inLocomotion = currentIsLocomotion && nextIsLocomotion;
+            var next = anim.GetNextAnimatorStateInfo(0);
+            inLocomotion = inLocomotion && next.IsTag(LocomotionTag);
         }
 
-        if (inLocomotion == swordLayersActive) return; // 変化なし
+        if (inLocomotion == swordLayersActive) return;
         swordLayersActive = inLocomotion;
 
         if (swordArmLayerIdx  >= 0) anim.SetLayerWeight(swordArmLayerIdx,  inLocomotion ? 0.7f : 0f);
         if (swordHandLayerIdx >= 0) anim.SetLayerWeight(swordHandLayerIdx, inLocomotion ? 1.0f : 0f);
-    }
-
-    private void ResetCombo()
-    {
-        comboIndex       = 0;
-        inComboWindow    = false;
-        comboWindowTimer = 0f;
-        comboResetTimer  = 0f;
-        pendingAttack    = false;
-        if (anim != null)
-            anim.SetInteger(ComboIndexHash, 0);
     }
 
     // ─────────────────────────────────────────
