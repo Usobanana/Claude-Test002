@@ -77,11 +77,12 @@ public class PlayerAnimatorSetupEditor : Editor
             return;
         }
 
-        var controller = animator.runtimeAnimatorController as AnimatorController;
+        // runtimeAnimatorController が AnimatorOverrideController の場合、元の AnimatorController まで遡る
+        var controller = GetBaseAnimatorController(animator.runtimeAnimatorController);
         if (controller == null)
         {
             EditorUtility.DisplayDialog("エラー",
-                "AnimatorController が見つかりません。\nAnimator に AnimatorController を設定してから実行してください。", "OK");
+                "AnimatorController が見つかりません。\nAnimator の Controller フィールドに AnimatorController を設定してから実行してください。", "OK");
             return;
         }
 
@@ -126,6 +127,13 @@ public class PlayerAnimatorSetupEditor : Editor
     // ─────────────────────────────────────────
     // プレースホルダークリップ
     // ─────────────────────────────────────────
+
+    private static AnimatorController GetBaseAnimatorController(RuntimeAnimatorController rtc)
+    {
+        if (rtc is AnimatorController ac)           return ac;
+        if (rtc is AnimatorOverrideController ovc)  return GetBaseAnimatorController(ovc.runtimeAnimatorController);
+        return null;
+    }
 
     private static AnimationClip GetOrCreatePlaceholderClip(AnimatorController controller)
     {

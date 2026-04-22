@@ -249,8 +249,21 @@ public class PlayerAnimator : MonoBehaviour
         swordArmLayerIdx     = anim.GetLayerIndex("SwordArm");
         swordHandLayerIdx    = anim.GetLayerIndex("SwordHand");
 
-        overrideController = new AnimatorOverrideController(anim.runtimeAnimatorController);
+        // シーン保存等で runtimeAnimatorController が既に OverrideController になっている場合、
+        // 元の AnimatorController まで遡ってから新しい OverrideController を作成する
+        var baseController = GetBaseController(anim.runtimeAnimatorController);
+        if (baseController == null)
+        {
+            Debug.LogWarning("[PlayerAnimator] AnimatorController が Animator に割り当てられていません");
+            return;
+        }
+        overrideController = new AnimatorOverrideController(baseController);
         anim.runtimeAnimatorController = overrideController;
+    }
+
+    private static RuntimeAnimatorController GetBaseController(RuntimeAnimatorController rtc)
+    {
+        return rtc is AnimatorOverrideController ovc ? GetBaseController(ovc.runtimeAnimatorController) : rtc;
     }
 
     private void AdvanceCombo()
