@@ -119,6 +119,7 @@ public class PlayerAnimator : MonoBehaviour
 
         if (anim != null)
         {
+            anim.applyRootMotion = false;
             swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
             swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
         }
@@ -135,6 +136,7 @@ public class PlayerAnimator : MonoBehaviour
         anim = GetComponentInChildren<Animator>();
         if (anim != null)
         {
+            anim.applyRootMotion = false;
             swordArmLayerIdx  = anim.GetLayerIndex("SwordArm");
             swordHandLayerIdx = anim.GetLayerIndex("SwordHand");
         }
