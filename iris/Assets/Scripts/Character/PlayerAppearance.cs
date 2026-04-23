@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
+#if SYNTY_PROP_BONE_TOOL
 using Synty.Tools.SyntyPropBoneTool;
+#endif
 
 /// <summary>
 /// Playerのモデル差し替え・武器装備を管理するコンポーネント。
@@ -78,16 +80,19 @@ public class PlayerAppearance : MonoBehaviour
         if (newModelPrefab == null) return;
         modelPrefab = newModelPrefab;
 
-        // 旧モデルの PropBoneConfig と localPosition を削除前に保存
-        PropBoneConfig savedPropBoneConfig = null;
         var savedLocalPosition = Vector3.zero;
         var savedLocalRotation = Quaternion.identity;
+#if SYNTY_PROP_BONE_TOOL
+        PropBoneConfig savedPropBoneConfig = null;
+#endif
         if (currentModel == null)
             currentModel = FindModelChild();
         if (currentModel != null)
         {
+#if SYNTY_PROP_BONE_TOOL
             var oldBinder = currentModel.GetComponentInChildren<PropBoneBinder>();
             if (oldBinder != null) savedPropBoneConfig = oldBinder.propBoneConfig;
+#endif
             savedLocalPosition = currentModel.transform.localPosition;
             savedLocalRotation = currentModel.transform.localRotation;
             Destroy(currentModel);
@@ -109,6 +114,7 @@ public class PlayerAppearance : MonoBehaviour
         if (animatorController != null && newAnim != null)
             newAnim.runtimeAnimatorController = animatorController;
 
+#if SYNTY_PROP_BONE_TOOL
         // PropBoneBinder をセットアップ（Prop_R_Socket を新モデルに再生成）
         if (savedPropBoneConfig != null && newAnim != null)
         {
@@ -119,6 +125,7 @@ public class PlayerAppearance : MonoBehaviour
             binder.CreatePropBones();
             binder.BindPropBones();
         }
+#endif
 
         // PlayerAnimator の参照を新Animatorに更新
         GetComponent<PlayerAnimator>()?.RefreshAnimator(newAnim);

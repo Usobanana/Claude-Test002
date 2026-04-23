@@ -2,7 +2,9 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if SYNTY_PROP_BONE_TOOL
 using Synty.Tools.SyntyPropBoneTool;
+#endif
 
 /// <summary>
 /// PlayerAppearance の Inspector にモデル・武器差し替えボタンを追加する。
@@ -55,20 +57,22 @@ public class PlayerAppearanceEditor : Editor
     {
         var player = appearance.gameObject;
 
-        // 旧モデルの情報を削除前に保存
-        PropBoneConfig savedConfig   = null;
-        var            savedLocalPos = Vector3.zero;
-        var            savedLocalRot = Quaternion.identity;
+        var savedLocalPos = Vector3.zero;
+        var savedLocalRot = Quaternion.identity;
+#if SYNTY_PROP_BONE_TOOL
+        PropBoneConfig savedConfig = null;
+#endif
 
         var existingAnim = player.GetComponentInChildren<Animator>();
         if (existingAnim != null && existingAnim.gameObject != player)
         {
-            var oldModel  = existingAnim.gameObject;
+            var oldModel = existingAnim.gameObject;
+#if SYNTY_PROP_BONE_TOOL
             var oldBinder = oldModel.GetComponentInChildren<PropBoneBinder>();
             if (oldBinder != null) savedConfig = oldBinder.propBoneConfig;
+#endif
             savedLocalPos = oldModel.transform.localPosition;
             savedLocalRot = oldModel.transform.localRotation;
-
             Undo.DestroyObjectImmediate(oldModel);
         }
 
@@ -86,6 +90,7 @@ public class PlayerAppearanceEditor : Editor
         if (newAnim != null && appearance.animatorController != null)
             newAnim.runtimeAnimatorController = appearance.animatorController;
 
+#if SYNTY_PROP_BONE_TOOL
         // PropBoneBinder をセットアップ（Prop_R_Socket を再生成）
         if (savedConfig != null && newAnim != null)
         {
@@ -97,6 +102,7 @@ public class PlayerAppearanceEditor : Editor
             binder.BindPropBones();
             EditorUtility.SetDirty(newModel);
         }
+#endif
 
         // 武器も再アタッチ
         if (appearance.weaponPrefab != null)
