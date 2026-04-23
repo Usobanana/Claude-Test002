@@ -26,6 +26,10 @@ sysinfo.txt
 .DS_Store
 Thumbs.db
 
+# WebGL ビルド（GitHub Pages 配信用）は除外しない
+!docs/webgl/Build/
+!docs/webgl/Build/**
+
 # 商用アセット（ライセンスによりリポジトリ不可・Asset Storeから再DL）
 iris/Assets/Synty/
 
