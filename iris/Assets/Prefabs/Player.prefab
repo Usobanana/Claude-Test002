@@ -60,13 +60,12 @@ GameObject:
   - component: {fileID: 3075190891035296367}
   - component: {fileID: 7241381842186945325}
   - component: {fileID: 164132325239937319}
-  - component: {fileID: 9081543114077091487}
   - component: {fileID: 2622155972742737340}
   - component: {fileID: 6535810082951780387}
-  - component: {fileID: 5998765677340942415}
   - component: {fileID: 1530738407149712541}
   - component: {fileID: 175371139625806745}
-  - component: {fileID: 2486952959949807495}
+  - component: {fileID: 8409751386859326392}
+  - component: {fileID: 2689829270856118198}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -200,42 +199,13 @@ MonoBehaviour:
   moveSpeed: 5
   rotateSpeed: 720
   actingMoveMultiplier: 0.2
+  modelRoot: {fileID: 0}
   dashSpeed: 9
   dashStaminaCost: 10
   dodgeDistance: 15
   dodgeDuration: 0.8
   dodgeStaminaCost: 25
   gravity: -20
---- !u!114 &9081543114077091487
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6503124612672467120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: -944628639613478452, guid: 730bbfdc485589946b2a6809837df43f, type: 3}
-  m_NotificationBehavior: 0
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: Player
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
 --- !u!114 &2622155972742737340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,21 +235,6 @@ MonoBehaviour:
   skill3Cooldown: 12
   ultCooldown: 30
   chainCooldown: 15
---- !u!114 &5998765677340942415
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6503124612672467120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c96c2dacc5590ba4cb961984846d3603, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
-  comboMode: 1
-  comboWindowDuration: 1
-  comboWindowOpenDelay: 0.8
 --- !u!114 &1530738407149712541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,7 +269,7 @@ MonoBehaviour:
   weaponPositionOffset: {x: 0, y: 0, z: 0}
   weaponRotationOffset: {x: 0, y: 0, z: 0}
   animatorController: {fileID: 9100000, guid: 0e5aa52109c40e7489ef70ec891af431, type: 2}
---- !u!114 &2486952959949807495
+--- !u!114 &8409751386859326392
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -323,17 +278,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 6503124612672467120}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7b73ee80059bfa41b9335de27aa745f, type: 3}
+  m_Script: {fileID: 11500000, guid: c96c2dacc5590ba4cb961984846d3603, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AttackHitbox
-  arcRange: 1.5
-  arcAngle: 120
-  hitStopTimeScale: 0.1
-  hitStopDuration: 0.1
-  hitShakeMagnitude: 0.1
-  hitShakeDuration: 0.1
-  knockbackForce: 1.5
-  knockbackDuration: 0.2
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
+  comboMode: 1
+  comboData: {fileID: 11400000, guid: 0d3c50619a11ae44d8a0682dd3459c51, type: 2}
+  comboPlaceholderClip: {fileID: 7400000, guid: 08781474988a0d04ab37bdba82556da1, type: 2}
+  weaponArmPlaceholderClip: {fileID: 1375766457120316241, guid: b94969b4c36c3c94284f72888ad9289d, type: 3}
+  weaponHandPlaceholderClip: {fileID: 0}
+--- !u!114 &2689829270856118198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6503124612672467120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae47dc0554153ee49b290f3ca33780a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitDetector
 --- !u!1 &8586019717515809845
 GameObject:
   m_ObjectHideFlags: 0

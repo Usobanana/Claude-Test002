@@ -6122,7 +6122,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4900405118519073751, guid: 73f05dbd78a0f0745ace8794c7e11a60, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8289372101885757317, guid: 73f05dbd78a0f0745ace8794c7e11a60, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6217,38 +6217,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3575056963106986160, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.0000001512552
-      objectReference: {fileID: 0}
-    - target: {fileID: 3575056963106986160, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.000000040454324
-      objectReference: {fileID: 0}
-    - target: {fileID: 3575056963106986160, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.000000025905123
-      objectReference: {fileID: 0}
-    - target: {fileID: 5998765677340942415, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: comboData
-      value: 
-      objectReference: {fileID: 11400000, guid: 0d3c50619a11ae44d8a0682dd3459c51, type: 2}
-    - target: {fileID: 5998765677340942415, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: comboPlaceholderClip
-      value: 
-      objectReference: {fileID: 7400000, guid: 08781474988a0d04ab37bdba82556da1, type: 2}
     - target: {fileID: 6503124612672467120, guid: f66368276b91a1748853d193ef82c797, type: 3}
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 8409751386859326392, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: comboData
-      value: 
-      objectReference: {fileID: 11400000, guid: 0d3c50619a11ae44d8a0682dd3459c51, type: 2}
-    - target: {fileID: 8409751386859326392, guid: f66368276b91a1748853d193ef82c797, type: 3}
-      propertyPath: comboPlaceholderClip
-      value: 
-      objectReference: {fileID: 7400000, guid: 08781474988a0d04ab37bdba82556da1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

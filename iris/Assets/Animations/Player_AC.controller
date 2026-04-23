@@ -7,7 +7,7 @@ AnimatorStateMachine:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SwordHand
+  m_Name: 'WeaponHand '
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 543888287637131992}
@@ -33,7 +33,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 5123328163618564983}
-    m_Position: {x: 320, y: -140, z: 0}
+    m_Position: {x: 310, y: -160, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -363350920673932739}
     m_Position: {x: 740, y: -140, z: 0}
@@ -42,31 +42,31 @@ AnimatorStateMachine:
     m_Position: {x: -50, y: 210, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -3513876656839435338}
-    m_Position: {x: 515, y: 585, z: 0}
+    m_Position: {x: 1050, y: 70, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4551549299829006297}
-    m_Position: {x: 550, y: 650, z: 0}
+    m_Position: {x: 1060, y: 150, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4100946067957149124}
-    m_Position: {x: 585, y: 715, z: 0}
+    m_Position: {x: 520, y: 140, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5686345633386351835}
-    m_Position: {x: 620, y: 780, z: 0}
+    m_Position: {x: 550, y: 200, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -432448114131296299}
-    m_Position: {x: 655, y: 845, z: 0}
+    m_Position: {x: 590, y: 270, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 7393078329968867923}
-    m_Position: {x: 690, y: 910, z: 0}
+    m_Position: {x: 620, y: 330, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 606693088163800346}
-    m_Position: {x: 725, y: 975, z: 0}
+    m_Position: {x: 660, y: 400, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4636697709675725156}
-    m_Position: {x: 760, y: 1040, z: 0}
+    m_Position: {x: 690, y: 460, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5183036200374700276}
-    m_Position: {x: 90, y: -220, z: 0}
+    m_Position: {x: 740, y: -270, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions:
   - {fileID: -6005501504837158270}
@@ -81,7 +81,7 @@ AnimatorStateMachine:
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
   m_AnyStatePosition: {x: -140, y: -220, z: 0}
-  m_EntryPosition: {x: 340, y: -240, z: 0}
+  m_EntryPosition: {x: 330, y: -300, z: 0}
   m_ExitPosition: {x: 1080, y: -150, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
   m_DefaultState: {fileID: 5123328163618564983}
@@ -483,7 +483,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -8799737348032370122, guid: 0451a6573860cb64dbcbdd3c9f9511ce, type: 3}
+  m_Motion: {fileID: 7400000, guid: 75cbcba3a3b427646af1fe3af5027274, type: 2}
   m_Tag: Locomotion
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -496,11 +496,11 @@ AnimatorStateMachine:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SwordArm
+  m_Name: WeaponArm
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: -5750788455825043459}
-    m_Position: {x: 200, y: 0, z: 0}
+    m_Position: {x: 310, y: 120, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -594,7 +594,7 @@ AnimatorController:
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
   - serializedVersion: 5
-    m_Name: SwordArm
+    m_Name: WeaponArm
     m_StateMachine: {fileID: -255159100383071488}
     m_Mask: {fileID: 31900000, guid: 389fc9fe2b02a8740a0d0edca3153802, type: 2}
     m_Motions: []
@@ -606,7 +606,7 @@ AnimatorController:
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
   - serializedVersion: 5
-    m_Name: SwordHand
+    m_Name: 'WeaponHand '
     m_StateMachine: {fileID: -8982632607917659507}
     m_Mask: {fileID: 31900000, guid: 76597be87a910394abaecd79099cf70f, type: 2}
     m_Motions: []
@@ -880,7 +880,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: cc4d61713745c3143a25f9b7d3053f40, type: 2}
+  m_Motion: {fileID: 7400000, guid: 318c8f0eba03d08498c0ff665b5728c8, type: 2}
   m_Tag: Locomotion
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -920,14 +920,17 @@ AnimatorStateTransition:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  m_Conditions: []
+  m_Conditions:
+  - m_ConditionMode: 1
+    m_ConditionEvent: Attack
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 5183036200374700276}
   m_Solo: 0
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0.05
   m_TransitionOffset: 0
   m_ExitTime: 0.75
   m_HasExitTime: 0
@@ -978,7 +981,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -6821712913461239410, guid: 3dd6129ee8b00f44294969e4601728a5, type: 3}
+  m_Motion: {fileID: 7400000, guid: 730bfe8e6640e9a4699fb990872d44d3, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

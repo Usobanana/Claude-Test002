@@ -745,6 +745,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05e2f16044065c1409e8e1d3b9bebd02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputHandler
+  dashHoldThreshold: 0.2
 --- !u!114 &287240652
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1583,6 +1584,18 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 0e5aa52109c40e7489ef70ec891af431, type: 2}
+    - target: {fileID: 3575056963106986160, guid: f66368276b91a1748853d193ef82c797, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.00000007983146
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575056963106986160, guid: f66368276b91a1748853d193ef82c797, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.000000033040124
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575056963106986160, guid: f66368276b91a1748853d193ef82c797, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.00000013656941
+      objectReference: {fileID: 0}
     - target: {fileID: 6503124612672467120, guid: f66368276b91a1748853d193ef82c797, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1810,6 +1823,11 @@ MonoBehaviour:
   fieldBGM: {fileID: 8300000, guid: a14abe09e20eca640be494a4a11efc1e, type: 3}
   bossBGM: {fileID: 8300000, guid: a14abe09e20eca640be494a4a11efc1e, type: 3}
   playerAttackSE: {fileID: 8300000, guid: d2224a0d75ad393478a343920ebcea1f, type: 3}
+  playerSwingSE:
+  - {fileID: 8300000, guid: d2224a0d75ad393478a343920ebcea1f, type: 3}
+  - {fileID: 8300000, guid: 3e3f21c24d423d9439602fe4a1567372, type: 3}
+  - {fileID: 8300000, guid: 215758d3918711c438249c36828cd730, type: 3}
+  playerHitSE: []
   playerDodgeSE: {fileID: 8300000, guid: 3e3f21c24d423d9439602fe4a1567372, type: 3}
   playerHurtSE: {fileID: 8300000, guid: 1540b9e98c616a242b070416d05a2993, type: 3}
   playerDeathSE: {fileID: 8300000, guid: 9535d51f48d6f924c81ae98c2ae89239, type: 3}

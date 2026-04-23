@@ -15,13 +15,177 @@ MonoBehaviour:
   steps:
   - clip: {fileID: 7400000, guid: dd32d216de68f9141aeed3894f1126b3, type: 2}
     windowStartFrame: 15
-    windowEndFrame: 0
+    windowEndFrame: 90
+    hitEvents:
+    - hitStartFrame: 5
+      hitEndFrame: 15
+      shapeType: 0
+      arcRange: 1.5
+      arcAngle: 120
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: 5
+      hitSE: 2
   - clip: {fileID: 7400000, guid: 0c6c5a44bbc13af4095ea17ce1346dfa, type: 2}
     windowStartFrame: 15
     windowEndFrame: 0
+    hitEvents:
+    - hitStartFrame: 10
+      hitEndFrame: 15
+      shapeType: 0
+      arcRange: 2.5
+      arcAngle: 130
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
+    - hitStartFrame: 28
+      hitEndFrame: 33
+      shapeType: 0
+      arcRange: 2
+      arcAngle: 130
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
   - clip: {fileID: 7400000, guid: 8611b057819bde54c861903cca33ad21, type: 2}
     windowStartFrame: 15
-    windowEndFrame: 0
+    windowEndFrame: 100
+    hitEvents:
+    - hitStartFrame: 15
+      hitEndFrame: 20
+      shapeType: 0
+      arcRange: 3
+      arcAngle: 120
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
   - clip: {fileID: 7400000, guid: 0da277239e05f1a46aec6c4540c35341, type: 2}
     windowStartFrame: 15
-    windowEndFrame: 0
+    windowEndFrame: 100
+    hitEvents:
+    - hitStartFrame: 17
+      hitEndFrame: 20
+      shapeType: 0
+      arcRange: 2
+      arcAngle: 360
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
+    - hitStartFrame: 21
+      hitEndFrame: 24
+      shapeType: 0
+      arcRange: 2
+      arcAngle: 360
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
+    - hitStartFrame: 25
+      hitEndFrame: 28
+      shapeType: 0
+      arcRange: 2
+      arcAngle: 360
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
+    - hitStartFrame: 29
+      hitEndFrame: 32
+      shapeType: 0
+      arcRange: 2
+      arcAngle: 360
+      rectLength: 2
+      rectWidth: 1
+      rectForwardOffset: 0
+      circleRadius: 1.5
+      circleOffset: {x: 0, y: 0, z: 0}
+      damageRate: 100
+      hitStopTimeScale: 0.05
+      hitStopDuration: 0.06
+      hitShakeMagnitude: 0.08
+      hitShakeDuration: 0.1
+      knockbackForce: 1.5
+      knockbackDuration: 0.2
+      swingSE: 1
+      swingSEFrame: -1
+      hitSE: 2
