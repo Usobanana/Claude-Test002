@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
 
 /// <summary>
-/// リザルト画面のUI制御
-/// QuestManagerの結果を表示し、拠点に戻るボタンを提供する
+/// リザルト画面のUI制御。
+/// QuestManagerの結果を表示し、E / コントローラーB / ボタンタッチで拠点へ戻る。
 /// </summary>
 public class ResultScreenUI : MonoBehaviour
 {
@@ -17,16 +18,30 @@ public class ResultScreenUI : MonoBehaviour
 
     void Start()
     {
-        // SerializeField未設定の場合は子から自動検索
         if (returnButton == null)
             returnButton = GetComponentInChildren<Button>(true);
 
         SetupUI();
         returnButton?.onClick.AddListener(ReturnToBase);
 
-        // クエスト成功時にSEを再生
+        // InteractionPromptUI でキー操作アナウンスを表示
+        InteractionPromptUI.Instance?.Show("拠点へ戻る", ReturnToBase);
+
         if (QuestManager.Instance != null && QuestManager.Instance.IsSuccess)
             AudioManager.Instance?.PlaySE(SFX.QuestClear);
+    }
+
+    void OnDestroy()
+    {
+        InteractionPromptUI.Instance?.Hide();
+    }
+
+    void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            ReturnToBase();
+        else if (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame)
+            ReturnToBase();
     }
 
     private void SetupUI()

@@ -15,7 +15,13 @@ public static class EventSystemSetupTool
     public static void Setup()
     {
         var es = Object.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>();
-        if (es == null) { Debug.LogError("[EventSystemSetup] EventSystem が見つかりません"); return; }
+        if (es == null)
+        {
+            var esGo = new GameObject("EventSystem");
+            es = esGo.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            Undo.RegisterCreatedObjectUndo(esGo, "Create EventSystem");
+            Debug.Log("[EventSystemSetup] EventSystem を新規作成しました");
+        }
 
         var module = es.GetComponent<InputSystemUIInputModule>();
         if (module == null)

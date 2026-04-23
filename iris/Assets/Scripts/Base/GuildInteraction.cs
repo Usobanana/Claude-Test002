@@ -35,9 +35,14 @@ public class GuildInteraction : MonoBehaviour
 
         wasInRange = isInRange;
 
-        // E キーでも操作可能
-        if (isInRange && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-            OpenGuild();
+        // E キー / コントローラー B ボタン
+        if (isInRange)
+        {
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                OpenGuild();
+            else if (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame)
+                OpenGuild();
+        }
     }
 
     void OnDisable()

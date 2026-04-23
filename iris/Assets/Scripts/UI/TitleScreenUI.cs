@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// タイトル画面のUI制御。
@@ -25,6 +26,16 @@ public class TitleScreenUI : MonoBehaviour
         }
 
         startButton?.onClick.AddListener(OnStartClicked);
+    }
+
+    void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            OnStartClicked();
+        else if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+            OnStartClicked();
+        else if (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame)
+            OnStartClicked();
     }
 
     private void OnStartClicked()

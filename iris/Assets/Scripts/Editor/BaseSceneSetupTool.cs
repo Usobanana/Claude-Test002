@@ -67,6 +67,9 @@ public static class BaseSceneSetupTool
         Debug.Log("[BaseSceneSetupTool] BaseScene セットアップ完了");
     }
 
+    [MenuItem("Game/Add InteractionPromptUI to Current Scene")]
+    public static void AddInteractionPromptUIMenu() => SetupInteractionPromptUI();
+
     private static void SetupInteractionPromptUI()
     {
         if (GameObject.Find("InteractionPromptCanvas") != null) return;
@@ -96,6 +99,22 @@ public static class BaseSceneSetupTool
         btnImg.color = new Color(0.1f, 0.1f, 0.1f, 0.85f);
         var btn = btnGo.AddComponent<Button>();
 
+        // ヒントテキスト（[E] / [B] 表示）
+        var hintGo   = new GameObject("HintText");
+        hintGo.transform.SetParent(btnGo.transform, false);
+        var hintRect = hintGo.AddComponent<RectTransform>();
+        hintRect.anchorMin        = new Vector2(0f, 0.5f);
+        hintRect.anchorMax        = new Vector2(0f, 0.5f);
+        hintRect.pivot            = new Vector2(0f, 0.5f);
+        hintRect.anchoredPosition = new Vector2(12f, 0f);
+        hintRect.sizeDelta        = new Vector2(60f, 60f);
+        var hint = hintGo.AddComponent<TextMeshProUGUI>();
+        hint.text      = "[E]";
+        hint.fontSize  = 22f;
+        hint.alignment = TextAlignmentOptions.Center;
+        hint.color     = new Color(0.9f, 0.9f, 0.4f);
+
+        // ラベルテキスト
         var txtGo   = new GameObject("Label");
         txtGo.transform.SetParent(btnGo.transform, false);
         var txtRect = txtGo.AddComponent<RectTransform>();
@@ -114,6 +133,15 @@ public static class BaseSceneSetupTool
     [MenuItem("Game/Setup Title Scene Objects")]
     public static void SetupTitleSceneObjects()
     {
+        // SceneManagers（GameManager + SceneLoader）
+        if (GameObject.Find("SceneManagers") == null)
+        {
+            var managers = new GameObject("SceneManagers");
+            managers.AddComponent<GameManager>();
+            managers.AddComponent<SceneLoader>();
+            Undo.RegisterCreatedObjectUndo(managers, "Create SceneManagers");
+        }
+
         if (GameObject.Find("TitleCanvas") != null)
         {
             Debug.Log("[BaseSceneSetupTool] TitleCanvas は既に存在します");

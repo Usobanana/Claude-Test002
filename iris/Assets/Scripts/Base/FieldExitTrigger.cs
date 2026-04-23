@@ -34,9 +34,14 @@ public class FieldExitTrigger : MonoBehaviour
 
         wasInZone = playerInZone;
 
-        // E キーでも操作可能
-        if (playerInZone && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-            TryDepart();
+        // E キー / コントローラー B ボタン
+        if (playerInZone)
+        {
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                TryDepart();
+            else if (Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame)
+                TryDepart();
+        }
     }
 
     void OnDisable()
