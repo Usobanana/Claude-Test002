@@ -32,6 +32,10 @@ public class PlayerAppearance : MonoBehaviour
     [Tooltip("モデル差し替え時にアサインするAnimatorController")]
     [SerializeField] public RuntimeAnimatorController animatorController;
 
+    [Header("スケール設定")]
+    [Tooltip("モデルのスケール（1 = 等倍）")]
+    [SerializeField] public Vector3 modelScale = Vector3.one;
+
     // 現在のモデル GameObject（差し替え時の削除に使用）
     private GameObject currentModel;
 
@@ -103,7 +107,7 @@ public class PlayerAppearance : MonoBehaviour
         var newModel = Instantiate(newModelPrefab, transform);
         newModel.transform.localPosition = savedLocalPosition;
         newModel.transform.localRotation = savedLocalRotation;
-        newModel.transform.localScale    = Vector3.one;
+        newModel.transform.localScale    = modelScale;
         currentModel = newModel;
 
         // 新モデルのAnimatorを直接取得（Destroy遅延による参照ミスを防ぐ）
@@ -180,25 +184,49 @@ public class PlayerAppearance : MonoBehaviour
         var existing = FindBone("__Weapon__");
         if (existing != null) Destroy(existing.gameObject);
 
-        var bone = FindBone(weaponBoneName);
+        // 1. Humanoid Avatar から自動検知
+        var bone = FindRightHandBone();
+
+        // 2. Inspector で指定したボーン名で検索
+        if (bone == null && !string.IsNullOrEmpty(weaponBoneName))
+        {
+            bone = FindBone(weaponBoneName);
+            if (bone != null)
+                Debug.Log($"[PlayerAppearance] ボーン名 '{weaponBoneName}' で武器アタッチ");
+        }
+
+        // 3. "Hand_R" にフォールバック
         if (bone == null)
         {
-            if (weaponBoneName != "Hand_R")
-            {
-                Debug.LogWarning($"[PlayerAppearance] ボーン '{weaponBoneName}' が見つかりません。'Hand_R' にフォールバックします。");
-                bone = FindBone("Hand_R");
-            }
-            if (bone == null)
-            {
-                Debug.LogWarning($"[PlayerAppearance] ボーン 'Hand_R' も見つかりません");
-                return;
-            }
+            Debug.LogWarning($"[PlayerAppearance] ボーン '{weaponBoneName}' が見つかりません。'Hand_R' にフォールバックします。");
+            bone = FindBone("Hand_R");
+        }
+
+        if (bone == null)
+        {
+            Debug.LogWarning("[PlayerAppearance] 右手ボーンが見つかりません。武器をアタッチできませんでした。");
+            return;
         }
 
         var weapon = Instantiate(weaponPrefab, bone);
         weapon.name = "__Weapon__";
         weapon.transform.localPosition = weaponPositionOffset;
         weapon.transform.localRotation = Quaternion.Euler(weaponRotationOffset);
+    }
+
+    /// <summary>Humanoid Avatar から右手ボーンを取得する。失敗時は null。</summary>
+    private Transform FindRightHandBone()
+    {
+        var animator = currentModel != null
+            ? currentModel.GetComponentInChildren<Animator>()
+            : GetComponentInChildren<Animator>();
+
+        if (animator == null || !animator.isHuman) return null;
+
+        var bone = animator.GetBoneTransform(HumanBodyBones.RightHand);
+        if (bone != null)
+            Debug.Log($"[PlayerAppearance] Humanoid Avatar から右手ボーン '{bone.name}' を自動検知しました");
+        return bone;
     }
 
     /// <summary>子オブジェクト全体から指定名のボーンを再帰検索する。</summary>

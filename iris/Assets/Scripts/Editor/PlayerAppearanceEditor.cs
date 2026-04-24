@@ -81,7 +81,7 @@ public class PlayerAppearanceEditor : Editor
             appearance.modelPrefab, player.transform);
         newModel.transform.localPosition = savedLocalPos;
         newModel.transform.localRotation = savedLocalRot;
-        newModel.transform.localScale    = Vector3.one;
+        newModel.transform.localScale    = appearance.modelScale;
         Undo.RegisterCreatedObjectUndo(newModel, "Swap Player Model");
 
         // AnimatorController をアサイン
@@ -126,21 +126,29 @@ public class PlayerAppearanceEditor : Editor
         var existing = FindInChildren(player.transform, "__Weapon__");
         if (existing != null) Undo.DestroyObjectImmediate(existing.gameObject);
 
-        // ボーン検索
-        var bone = FindInChildren(player.transform, appearance.weaponBoneName);
+        // 1. Humanoid Avatar から自動検知
+        var bone = FindRightHandBoneInEditor(player);
+
+        // 2. Inspector で指定したボーン名で検索
+        if (bone == null && !string.IsNullOrEmpty(appearance.weaponBoneName))
+        {
+            bone = FindInChildren(player.transform, appearance.weaponBoneName);
+            if (bone != null)
+                Debug.Log($"[PlayerAppearance] ボーン名 '{appearance.weaponBoneName}' で武器アタッチ");
+        }
+
+        // 3. "Hand_R" にフォールバック
         if (bone == null)
         {
-            if (appearance.weaponBoneName != "Hand_R")
-            {
-                Debug.LogWarning(
-                    $"[PlayerAppearance] ボーン '{appearance.weaponBoneName}' が見つかりません。'Hand_R' にフォールバックします。");
-                bone = FindInChildren(player.transform, "Hand_R");
-            }
-            if (bone == null)
-            {
-                Debug.LogWarning("[PlayerAppearance] ボーン 'Hand_R' も見つかりません");
-                return;
-            }
+            Debug.LogWarning(
+                $"[PlayerAppearance] ボーン '{appearance.weaponBoneName}' が見つかりません。'Hand_R' にフォールバックします。");
+            bone = FindInChildren(player.transform, "Hand_R");
+        }
+
+        if (bone == null)
+        {
+            Debug.LogWarning("[PlayerAppearance] 右手ボーンが見つかりません。武器をアタッチできませんでした。");
+            return;
         }
 
         // 武器をインスタンス化
@@ -163,6 +171,17 @@ public class PlayerAppearanceEditor : Editor
     // ─────────────────────────────────────────
     // ユーティリティ
     // ─────────────────────────────────────────
+
+    private static Transform FindRightHandBoneInEditor(GameObject root)
+    {
+        var animator = root.GetComponentInChildren<Animator>();
+        if (animator == null || !animator.isHuman) return null;
+
+        var bone = animator.GetBoneTransform(HumanBodyBones.RightHand);
+        if (bone != null)
+            Debug.Log($"[PlayerAppearance] Humanoid Avatar から右手ボーン '{bone.name}' を自動検知しました");
+        return bone;
+    }
 
     private static Transform FindInChildren(Transform parent, string name)
     {
