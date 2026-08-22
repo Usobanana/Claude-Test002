@@ -35,3 +35,6 @@ iris/Assets/Synty/
 
 # Asset Storeキャッシュ
 *.unitypackage
+
+# Claude Code ワークツリー
+.claude/worktrees/
